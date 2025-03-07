@@ -9,12 +9,16 @@
 #include <linux/fs_struct.h>
 // init_task
 #include <linux/sched/task.h>
-
-MODULE_LICENSE("GPL");
+// struct atomic_t
+#include <linux/types.h>
+// atomic_read
+#include <asm/atomic.h>
+// struct mm_strct
+//#include <linux/mm_types.h>
 
 static int __init print_pcb(void)
 {
-	struct task_struct *task, *0;
+	struct task_struct *task, *p;
 	struct list_head *pos;
 	int count = 0;
 
@@ -27,8 +31,8 @@ static int __init print_pcb(void)
 		p = list_entry(pos, struct task_struct, tasks);
 		count++;
 		printk("\n\n");
-		printk("pid:%d, state:%d, prio:%d, static_prio:%d\n", p->pid, p->prio, p->static_prio);
-		printk("parent's pid:%d, used_cnt:%d, umask:%d\n", p->parent->pid, p->parent->files->count, p->parent->fs->umask);
+		printk("pid:%d, state:%d, prio:%d, static_prio:%d\n", p->__state, p->pid, p->prio, p->static_prio);
+		printk("parent's pid:%d, used_cnt:%d, umask:%d\n", p->parent->pid, atomic_read(&(p->parent->files->count)), p->parent->fs->umask);
 		if (p->mm != NULL)
 		{
 			printk("total_vm:%ld", p->mm->total_vm);
@@ -45,3 +49,7 @@ static void __exit exit_pcb(void)
 	printk("exiting print pcb...\n");
 }
 
+module_init(print_pcb);
+module_exit(exit_pcb);
+
+MODULE_LICENSE("GPL");
