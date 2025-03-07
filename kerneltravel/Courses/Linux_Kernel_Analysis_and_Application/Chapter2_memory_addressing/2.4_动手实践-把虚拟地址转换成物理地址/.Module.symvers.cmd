@@ -1,0 +1,1 @@
+cmd_/home/zlj/zljgit/kerneltravel/Chapter2_memory_addressing/2.4_动手实践-把虚拟地址转换成物理地址/Module.symvers := sed 's/\.ko$$/\.o/' /home/zlj/zljgit/kerneltravel/Chapter2_memory_addressing/2.4_动手实践-把虚拟地址转换成物理地址/modules.order | scripts/mod/modpost -m -a  -o /home/zlj/zljgit/kerneltravel/Chapter2_memory_addressing/2.4_动手实践-把虚拟地址转换成物理地址/Module.symvers -e -i Module.symvers   -T -
