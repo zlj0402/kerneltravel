@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "load.h"
 
 // last whole define: v2.5.27
 #define list_entry(ptr, type, member) \
@@ -18,14 +19,3 @@ int main() {
 
 	return 0;
 }
-
-/* output:
-zlj@zlj-vm:~/zljgit/kerneltravel/Courses/Linux_Kernel_Analysis_and_Application/SourceCode/Macro/list/list_entry/Exp$ ./list_entry_exp
-a = 1, b = *, c = 3.00
-example address: 0x7ffed35b9030
-list entry -- example address: 0x7ffed35b9030
-*/
-
-/* expalin:
- the third argument in list_entry macro, is the name what we define in the struct
-*/
