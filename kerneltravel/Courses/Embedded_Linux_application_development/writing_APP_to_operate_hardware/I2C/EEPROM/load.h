@@ -12,4 +12,8 @@
  * 					[root@100ask:/mnt/04_CodingAppOperatesHW/I2C]# i2ctransfer -f -y 0 w1@0x50 0 r2
  * 					0x6c 0x6c
  * 					ps: 0x6c确实是l，且有两个;
+ * 
+ * description:
+ * 			> 为什么要加上一个休眠时间（nanosleep 20ms）
+ * 				EEPROM手册，表示在接受到一个数据之后，EEPROM会进入一个内部的写循环，需要t_wr的时间（10ms）, 这段时间的写入都是禁止的；
  */
