@@ -16,4 +16,10 @@
  * description:
  * 			> 为什么要加上一个休眠时间（nanosleep 20ms）
  * 				EEPROM手册，表示在接受到一个数据之后，EEPROM会进入一个内部的写循环，需要t_wr的时间（10ms）, 这段时间的写入都是禁止的；
+ *
+ * 			> 尝试了给开发板断电，再重启，再次执行：i2ctransfer -f -y 0 w1@0x50 0 r2
+ * 				output:
+ * 					[root@100ask:/mnt/04_CodingAppOperatesHW/I2C]# i2ctransfer -f -y 0 w1@0x50 0 r2
+ * 					0x6c 0x6c
+ * 					+ 可以看出来，EEPROM断电之后，数据确实能够保存下来，还是ll的ascii码；
  */
