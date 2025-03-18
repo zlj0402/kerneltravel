@@ -1,6 +1,9 @@
 #include <stdio.h>
-#include "i2cbusses.h"
 #include <i2c/smbus.h>
+#include <time.h>
+#include "i2cbusses.h"
+
+#include "load.h"
 
 /**
  * Usage: ./at24c02_test SMBUS_NO. w "zlj0402@git.com"
@@ -9,19 +12,23 @@
 
 int main(int argc, char* argv[])
 {
-	unsigned int dev_addr;
-	unsigned int mem_addr;
+	unsigned int dev_addr = 0x50;
+	unsigned int mem_addr = 0;
 	unsigned char buf[128];
 	
 	unsigned char* str;
 	int fd;
 	char filename[32];
 
-	if (argc != 3 || argc != 4)
+	struct timespec sleep_time;
+	sleep_time.tv_sec = 0;
+	sleep_time.tv_nsec = 20000000;
+
+	if (!(argc == 3 || argc == 4))
 	{
 		printf("Usage:\n");
-		printf("write eeprom: %s SMBUS_NO. w <string>", argv[0]);
-		printf("read  eeprom: %s SUBUS_NO. r", argv[0]);
+		printf("write eeprom: %s SMBUS_NO. w <string>\n", argv[0]);
+		printf("read  eeprom: %s SUBUS_NO. r\n", argv[0]);
 		return -1;
 	}
 
@@ -35,8 +42,9 @@ int main(int argc, char* argv[])
 
 	// int set_slave_addr(int file, int address, int force)
 	int res = set_slave_addr(fd, dev_addr, 1);
-	if (!res)
+	if (res)
 	{
+		printf("res = %d\n", res);
 		printf("can not set_slave_addr\n");
 		return -1;
 	}
@@ -49,7 +57,13 @@ int main(int argc, char* argv[])
 		{
 			// __s32 i2c_smbus_write_byte_data(int file, __u8 command, __u8 value)
 			// __u8 command -> 寄存器的存储地址
-			i2c_smbus_write_byte_data(fd, mem_addr, *str);
+			int ret = i2c_smbus_write_byte_data(fd, mem_addr + 1, *str);
+			if (ret < 0)
+			{
+				printf("i2c_smbus_write_byte_data error\n");
+				return -1;
+			}
+			nanosleep(&sleep_time, NULL);
 			mem_addr++;
 			str++;
 		}
@@ -62,6 +76,11 @@ int main(int argc, char* argv[])
 		// 这里用I2C Block Read，因为这个封装函数，没有从设备上传的Block Count
 		// __s32 i2c_smbus_read_i2c_block_data(int file, __u8 command, __u8 length, const __u8 *values)
 		int read_cnt = i2c_smbus_read_i2c_block_data(fd, mem_addr, sizeof(buf), buf);
+		if (read_cnt < 0)
+		{
+			printf("i2c_smbus_read_i2c_block_data error\n");
+			return -1;
+		}
 		buf[read_cnt] = '\0';
 
 		printf("get data: %s\n", buf);
