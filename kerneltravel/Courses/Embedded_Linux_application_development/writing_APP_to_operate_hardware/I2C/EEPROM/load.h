@@ -7,7 +7,8 @@
  *					[root@100ask:/mnt/04_CodingAppOperatesHW/I2C]# ./accessing_EEPROM_at24c02 0 w liangj.zhang@qq.com
  *					[root@100ask:/mnt/04_CodingAppOperatesHW/I2C]# ./accessing_EEPROM_at24c02 0 r
  * 					get data: lliangj.zhang@qq.co
- * 					说明：我在写入的地址参数，就行了加1，所以第一个l，是之前没更改之前写入的;
+ * 					说明：我在写入的地址参数的地方，进行了加1，所以第一个l，是之前没更改之前写入的;
+ * 					正常的从地址0x1的地方开始写入的话，即使是采用参数的地方加1的方式，最后的字符串空白符的写入，也是应该在mem_addr+1的地方写入，这样在后面进行读取的时候，应该是lliangj.zhang@qq.com
  * 				3. 我又想到了i2ctransfer命令行读取试试，
  * 					[root@100ask:/mnt/04_CodingAppOperatesHW/I2C]# i2ctransfer -f -y 0 w1@0x50 0 r2
  * 					0x6c 0x6c
