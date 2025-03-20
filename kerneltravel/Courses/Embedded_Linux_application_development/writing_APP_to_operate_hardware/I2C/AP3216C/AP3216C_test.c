@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "AP3216C_lib.h"
+#include "load.h"
 
 int main(int argc, char* argv[])
 {
