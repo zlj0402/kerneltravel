@@ -1,7 +1,7 @@
 /**
  * @brief 读AP3216C的光感值（0xc、0xd）和距离值（0xe、0xf） -- SMBUS 的方式
  *
- * @ compile & execute:
+ * @compile & execute:
  * 			1. 在ubuntu虚拟机上，设置工具链的环境变量：
  * 				export ARCH=arm
  * 				export BUILDROOT_CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
@@ -16,8 +16,17 @@
  * 					read light: ./AP3216C_test 0 -l
  * 					read distance: ./AP3216C_test 0 -d
  * 					read value of light/distance per 3 seconds
+ * @description:
+ * 			当我们没有源码，只有库的时候：
+ * 			1. 静态库：Makefile当中生成./AP3216C_test可执行文件的时候，一起打包进去;
+ * 						这样开发板上，只需要个./AP3216C_test就能运行；
+ *			2. 动态库：Makefile当中以动态库，进行编译的话，动态库也需要放到开发板上;
+ *				+ 动态库可放位置:
+ *					+ 系统的/usr/lib、/lib位置
+ *					+ 任意位置，但要设置环境变量LD_LIBRARY，把库的路径放入这个变量中;
+ *						这样可执行文件运行的时候，能够找到库;
  *
- * @ output:
+ * @output:
  *			[root@100ask:/mnt/04b_CodingAppOperatesHW/27_smbus_ap3216c]# ./AP3216C_test 0 -d
  *			get i2cbus: 0
  *			reset AP3216C, got data: 0
