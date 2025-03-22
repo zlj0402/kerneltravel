@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include "load.h"
+
 /* ./hello_test r
  * ./hello_test w weidongshan
  */
@@ -37,12 +39,13 @@ int main(int argc, char* argv[])
 		buf[len - 1] = '\0';
 		
 		/* printf */
-		printf("get str from drv: %s\n", buf);
+		printf("len: %d, strlen: %d, get str from drv: %s\n", len, strlen(buf) + 1, buf);
 	}
-	else if ((argc == 3) && argv[2][0] == 'w')
+	else if ((argc == 3) && argv[1][0] == 'w')
 	{
 		/* write */
-		write(fd, argv[2], strlen(argv[2]) + 1);
+		len = write(fd, argv[2], strlen(argv[2]) + 1);
+		printf("write: get len: %d\n", len);
 	}
 
 	// 不主动关闭，系统也会自动调用close，close调用到release
