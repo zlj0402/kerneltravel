@@ -1,5 +1,5 @@
 /**
- * @brief: 第一个真正的驱动程序;
+ * @brief: 第一个 总线-设备-驱动分离模型 的驱动程序;
  *
  * @steps:
  * 		Bus-Device-Driver module
