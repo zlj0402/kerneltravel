@@ -58,7 +58,7 @@
  * 			到这，platform_driver和之前platform_driver/platform_device都用.c文件来构建驱动模块没什么不同，
  * 			唯一一点不同的是，具体获取device信息的方式不同，需要相应的API
  * 			2.5 获得设备树节点构建的device信息;
- * 				file_operations.probe的实现:
+ * 				platform_driver.probe的实现:
  * 					static int hello_probe(struct platform_device *pdev)
  * 					{
  * 						int err;

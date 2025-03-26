@@ -22,6 +22,7 @@
 #define CHRDEV_NAME "zlj_first_drv"
 
 static char hello_buf[BUFLEN] = "version1";
+static int major_no;
 
 static int hello_open(struct inode *inode, struct file *file)
 {
@@ -101,7 +102,8 @@ static int hello_probe(struct platform_device *pdev)
 		len = 100;
 	strncpy(hello_buf, vers, len);
 	hello_buf[len - 1] = '\0';
-
+	
+	major_no = CHRDEV_NO;
 	err = register_chrdev(CHRDEV_NO, CHRDEV_NAME, &hello_fops);
 	if (CHRDEV_NO != 0 && err < 0)
 	{
@@ -113,7 +115,7 @@ static int hello_probe(struct platform_device *pdev)
 	{
 		snprintf(major_no_buf, sizeof(major_no_buf), "%d", major_no);
 	}
-	printk(">>>>>>>>>>hello_probe, register_chrdev major_no = %s, ret = %d<<<<<<<<<<\n", 
+	printk(">>>>>>>>>>hello_probe, register_chrdev major_no = %s, err = %d<<<<<<<<<<\n", 
 		major_no_buf, err);
 
 	return err;
@@ -122,7 +124,7 @@ static int hello_probe(struct platform_device *pdev)
 static int hello_remove(struct platform_device *pdev)
 {
 	// unregister_chrdev(unsigned int major, const char * name)
-	unregister_chrdev(CHRDEV_NO, CHRDEV_NAME);
+	unregister_chrdev(major_no, CHRDEV_NAME);
 
 	return 0;
 }
