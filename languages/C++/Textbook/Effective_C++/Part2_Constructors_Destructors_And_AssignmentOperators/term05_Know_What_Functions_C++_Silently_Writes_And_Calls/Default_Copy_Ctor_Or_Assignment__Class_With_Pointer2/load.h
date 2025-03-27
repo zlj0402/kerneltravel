@@ -32,8 +32,8 @@
  * 		在看看a和*(no1.objectPointer)值，
  * 		我们现在可以推定，默认的copy assignment，也是单纯的一字节一字节的拷贝，所以指针变量的值，也是拷贝过来的，和拷贝构造参数变量的pointer存储的地址是相同的;
  *
- * 		正因为如此，no2先被析构掉之后，no1再去析构时，delete this->objectPointer的地址，已经是个无效的地址了;
- * 		所以，会报错free(): invalid pointer;
+ * 		+ free(): invalid pointer，为什么会有这个错误?
+ * 			因为free试图去free非new出来的int a;
  *
  * 		+ 为什么能推定140724805538704是no2的地址?
  * 			NamedObject class的大小，只有一个指针的大小，64位机器的指针大小为8字节，
