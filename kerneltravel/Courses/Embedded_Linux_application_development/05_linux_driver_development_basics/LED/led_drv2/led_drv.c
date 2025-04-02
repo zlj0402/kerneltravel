@@ -158,6 +158,7 @@ static int led_probe(struct platform_device *pdev)
 		len = BUF_LEN;
 	strncpy(led_ver_buf, pdev->resource[0].name, len);
 	led_ver_buf[len - 1] = '\0';
+	printk("Got led device version: %s\n", led_ver_buf);
 
 	/* 注册led的字符驱动程序 */
   	// static inline int register_chrdev(unsigned int major, const char *name, const struct file_operations *fops)
