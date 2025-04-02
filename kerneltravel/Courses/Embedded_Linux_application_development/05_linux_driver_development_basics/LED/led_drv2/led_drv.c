@@ -9,6 +9,8 @@
 #include <asm/page.h>
 #include <linux/timer.h>
 
+#include "load.h"
+
 #define BUF_LEN 128
 #define LED_CHRDEV_NAME "zlj_led"
 #define LED_DEV_NAME "zljled"
@@ -131,7 +133,7 @@ static ssize_t led_fpos_write(struct file *file, const char __user *buf,
 	}
 	else
 	{
-		if (hrtimer_active(&timer))
+		if (timer.function && hrtimer_active(&timer))
 			hrtimer_cancel(&timer);
 		/* set gpio to let led off */
 		*GPIO5_DR |= (1 << 3);	// 使引脚为高电平
@@ -192,6 +194,9 @@ static int led_probe(struct platform_device *pdev)
 
 static int led_remove(struct platform_device *pdev)
 {
+	if (timer.function && hrtimer_active(&timer))
+		hrtimer_cancel(&timer);
+
 	iounmap(IOMUXC_SNVS_SW_MUX_CTL_PAD_SNVS_TAMPER3);
 	iounmap(GPIO5_GDIR);
 	iounmap(GPIO5_DR);
