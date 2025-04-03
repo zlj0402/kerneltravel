@@ -96,6 +96,9 @@
  * 					Search for a property in a device tree node and retrieve a null
  * 					terminated string value (pointer to data, not a copy) in the list of strings
  * 					contained in that property.
+ * 						+ 代码中我们创建的char* vers=NULL;
+ *							使用的时候: err = of_property_read_string_index(pdev->dev.of_node, "version", 0, &vers);
+ *							vers指向的是设备树节点的静态字符串，不需要手动free();
  * 				+ 返回值:
  * 					Returns 0 on success, -EINVAL if the property does not exist, -ENODATA if
  * 					property does not have a value, and -EILSEQ if the string is not
