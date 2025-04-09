@@ -72,38 +72,46 @@
  *				5.3 开启一个定时任务;
  *					// hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim, u64 delta_ns, const enum hrtimer_mode mode);
  *					hrtimer_start_range_ns(&timer, TIMES_INTERVAL(2), 0, HRTIMER_MODE_REL_PINNED);
-*						+ ktime_t tim: 定时器的超时时间;
-*						+ u64 delta_ns: 定时器可接受的最大延迟，单位是纳秒 (ns)。设为 0 表示无延迟，即精确触发。
-*						+ HRTIMER_MODE_REL_PINNED: 定时器模式，相对当前时间启动，并固定到当前 CPU，即该定时器只会在当前 CPU 上触发，不会迁移到其他 CPU。
-*				5.4 取消一个定时任务;
-*					hrtimer_cancel(&timer); 主要作用:
-*						1) 停止定时器，防止它再次触发回调函数
-*						2) 等待回调函数执行完毕（如果定时器已触发但回调函数仍在运行）
-*						3) 返回值表明定时器是否成功取消（1 表示定时器在运行并被取消，0 表示定时器本来就没有在运行）
-*				------------
-*				ps: 
-*					1. 需要考虑很多情况:
-*						a. 多次执行测试程序./led_test /dev/zljled on，多次触发start_timer()? 
-*							需要判断timer是否在就绪队列当中: if (hrtimer_is_queued(&timer))
-*						b. 第一次start_timer时，我们加的判断，timer是否激活？避免重复start_timer; 
-*						c. 没init的timer，被启动，会报错: Unable to handle kernel NULL pointer dereference at virtual address 00000000
-*					2. 检查是否已经就绪等待触发（即在工作中）: if (hrtimer_is_queued(&timer)) 
-*					3. timer有无初始化判断: if (!timer.function) -> 未初始化
-*					4. LED每次都是执行一次亮灭，再控制间隙时长;
-*						一开始，写成每次只要么亮一下，或者灭一下; 虽然有一会亮一会灭，但感受不到忽快忽慢;
+ *						+ ktime_t tim: 定时器的超时时间;
+ *						+ u64 delta_ns: 定时器可接受的最大延迟，单位是纳秒 (ns)。设为 0 表示无延迟，即精确触发。
+ *						+ HRTIMER_MODE_REL_PINNED: 定时器模式，相对当前时间启动，并固定到当前 CPU，即该定时器只会在当前 CPU 上触发，不会迁移到其他 CPU。
+ *				5.4 取消一个定时任务;
+ *					hrtimer_cancel(&timer); 主要作用:
+ *						1) 停止定时器，防止它再次触发回调函数
+ *						2) 等待回调函数执行完毕（如果定时器已触发但回调函数仍在运行）
+ *						3) 返回值表明定时器是否成功取消（1 表示定时器在运行并被取消，0 表示定时器本来就没有在运行）
+ *				------------
+ *				ps: 
+ *					1. 需要考虑很多情况:
+ *						a. 多次执行测试程序./led_test /dev/zljled on，多次触发start_timer()? 
+ *							需要判断timer是否在就绪队列当中: if (hrtimer_is_queued(&timer))
+ *						b. 第一次start_timer时，我们加的判断，timer是否激活？避免重复start_timer; 
+ *						c. 没init的timer，被启动，会报错: Unable to handle kernel NULL pointer dereference at virtual address 00000000
+ *					2. 检查是否已经就绪等待触发（即在工作中）: if (hrtimer_is_queued(&timer)) 
+ *					3. timer有无初始化判断: if (!timer.function) -> 未初始化
+ *					4. LED每次都是执行一次亮灭，再控制间隙时长;
+ *						一开始，写成每次只要么亮一下，或者灭一下; 虽然有一会亮一会灭，但感受不到忽快忽慢;
  * 
  * @execute & steps:
- * 		1. 在ubuntu源文件目录下，执行：make
- * 		2. cp led_drv.ko led_dev.ko 和 led_test 到ubuntu和开发板共享目录下;
- * 		3. echo "7 4 1 7" > /proc/sys/kernel/printk，这样能查看我们加的printk;
- * 		4. 插入模块：
- * 			insmod led_drv.ko
- * 			insmod led_dev.ko
- * 			不分先后
- * 		5. 执行测试程序：./led_test /dev/zljled on/off
- * 		6. 现象:
- * 			+ on -> 灯忽快忽慢
- * 		 	+ off -> 灯灭
+ * 		1. 设备树的修改:
+ * 			1.1 在/Linux-4.9.88/arch/arm/boot/dts$ vim 100ask_imx6ull-14x14.dts当中添加节点;
+ * 			1.2 在linux kernel根目录，执行make dtbs
+ * 			1.3 将生成的dtb的二进制文件 arch/arm/boot/dts/100ask_imx6ull-14x14.dtb 到ubuntu和开发板共享的目录下;
+ * 			1.4 开发板中，将dtb文件cp到/boot目录下，覆盖原来的dtb；然后重启
+ * 			1.5 查看有没有生成设备树节点
+ * 				cd /sys/firmware/devicetree/base/(设备树的根目录)，看看有没有创建的新节点led_zlj
+ * 			1.6 查看有没有生成platform_device
+ * 				cd /sys/bus/platform/devices
+ * 		2. 驱动程序模块的注册;
+ * 			2.1 在ubuntu源文件目录下，执行：make
+ * 			2.2 cp led_drv.ko 和 led_test 到ubuntu和开发板共享目录下;
+ * 			2.3 echo "7 4 1 7" > /proc/sys/kernel/printk，这样能查看我们加的printk;
+ * 			2.4 插入模块：
+ * 				insmod led_drv.ko
+ * 			2.5 执行测试程序：./led_test /dev/zljled on/off
+ * 			2.6 现象:
+ * 				+ on -> 灯忽快忽慢
+ * 		 		+ off -> 灯灭
  *
  * @ps:
  * 		printk("led_release: %s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
