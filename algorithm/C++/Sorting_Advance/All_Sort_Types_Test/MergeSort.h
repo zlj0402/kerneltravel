@@ -57,7 +57,7 @@ void __mergeSort2(T arr[], int l, int r) {
 
 	//if (l >= r)
 	//	return;
-	if (l - r <= 15) {
+	if (r - l <= 15) {
 		insertionSort(arr, l, r);
 		return;
 	}
