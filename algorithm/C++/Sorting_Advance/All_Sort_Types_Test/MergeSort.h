@@ -1,5 +1,5 @@
 //
-// Created by liangj.zhang on 13/4/2025
+// Created by liangj.zhang on 13/4/2025 15/4/2025_BU
 //
 
 #include "InsertionSort.h"
@@ -72,4 +72,22 @@ void __mergeSort2(T arr[], int l, int r) {
 template<typename T>
 void mergeSort2(T arr[], int n) {
 	__mergeSort2(arr, 0, n - 1);
+}
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>> 自底向上的归并排序 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+template<typename T>
+void mergeSortBU(T arr[], int n) {
+
+	for (int sz = 1; sz < n; sz += sz) {
+		
+		// for (int i = 0; i < n; i += sz + sz) {
+		// i + sz < n，右半部分才有数据; 而左半部分是上一次排好序的（子左子右），已经不需要排序了;
+		for (int i = 0; i + sz < n; i += sz + sz) {	
+
+			if (arr[i + sz - 1] > arr[i + sz])
+				// 对arr[i...i+sz-1] 和 arr[i+sz...i+2*sz-1] 进行归并
+				__merge(arr, i, i + sz - 1, min(i + sz + sz - 1, n - 1));
+		}
+	}
 }

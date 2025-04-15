@@ -9,35 +9,27 @@
  */
 
 /* output:
+zlj@zlj-vm:~/zljgit/algorithm/C++/Sorting_Advance/All_Sort_Types_Test$ ./make
+-bash: ./make: No such file or directory
 zlj@zlj-vm:~/zljgit/algorithm/C++/Sorting_Advance/All_Sort_Types_Test$ ./main
-Test for random array, size = 1500, random range [0, 1500]
-Insertion Sort : 0.001009 s
-Shell Sort : 0.000139 s
-Shell Sort2 : 0.000119 s
-Selection Sort : 0.002327 s
-Selection Sort2 : 0.00177 s
-Bubble Sort : 0.003255 s
-Merge Sort : 0.000198 s
-Merge Sort2 : 0.001032 s
+Test for random array, size = 500000, random range [0, 500000]
+Shell Sort : 0.118434 s
+Shell Sort2 : 0.109235 s
+Merge Sort : 0.15464 s
+Merge Sort2 : 0.136857 s
+Merge Sort BU : 0.132734 s
 
-Test for more ordered random array, size = 1500, random range [0, 3]
-Insertion Sort : 0.000985 s
-Shell Sort : 9.3e-05 s
-Shell Sort2 : 7.6e-05 s
-Selection Sort : 0.002701 s
-Selection Sort2 : 0.001546 s
-Bubble Sort : 0.002873 s
-Merge Sort : 0.00013 s
-Merge Sort2 : 0.000851 s
+Test for more ordered random array, size = 500000, random range [0, 3]
+Shell Sort : 0.035692 s
+Shell Sort2 : 0.026037 s
+Merge Sort : 0.058095 s
+Merge Sort2 : 0.058781 s
+Merge Sort BU : 0.055206 s
 
-Test for nearly ordered array, size = 1500, swap time = 100
-Insertion Sort : 0.000198 s
-Shell Sort : 0.000124 s
-Shell Sort2 : 0.0001 s
-Selection Sort : 0.002381 s
-Selection Sort2 : 0.001652 s
-Bubble Sort : 0.002846 s
-Merge Sort : 0.000138 s
-Merge Sort2 : 0.000187 s
+Test for nearly ordered array, size = 500000, swap time = 100
+Shell Sort : 0.047285 s
+Shell Sort2 : 0.041556 s
+Merge Sort : 0.093957 s
+Merge Sort2 : 0.065945 s
+Merge Sort BU : 0.035904 s
 */
-
