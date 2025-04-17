@@ -91,6 +91,8 @@ void quickSort2(T arr[], int n) {
 	__quickSort2(arr, 0, n - 1);
 }
 
+// >>>>>>>>>>>>>>>>>>>>> 随机化 + 双路快速排序 <<<<<<<<<<<<<<<<<<<<<<<<
+
 // 双路快速排序的partition
 // 对arr[l...r]部分进行partition操作
 // 返回p, 使得arr[l+1...i] =< arr[p] ; arr[j...r] >= arr[p]
