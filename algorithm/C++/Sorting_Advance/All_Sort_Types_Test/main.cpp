@@ -18,49 +18,55 @@ void testSort(T* arr, int n);
 template<typename T>
 void testSort_nlogn(T* arr, int n);
 
-//int main(int argc, char* argv[]) {
-//
-//    int n = 200;
-//    int* arr = SortTestHelper::generateRandomArray(n, 0, 3);
-//    int* cp_arr = SortTestHelper::copyIntArray(arr, n);
-//    SortTestHelper::printArray(arr, n);
-//    SortTestHelper::printArray(cp_arr, n);
-//    quickSort2(arr, n);
-//    SortTestHelper::printArray(arr, n);
-//    cout << SortTestHelper::isSorted(arr, n) << endl;
-//    cout << SortTestHelper::isPermutation(cp_arr, arr, n, false) << endl;
-//
-//    //int n = 5;
-//    //int arr[] = { 4, 3, 5, 0, 3 };
-//    //SortTestHelper::printArray(arr, n);
-//    //quickSort(arr, n);
-//    //SortTestHelper::printArray(arr, n);
-//}
-
 int main(int argc, char* argv[]) {
 
-    int n = 20000;
-
-    // 测试1 一般测试
-    cout << "Test for random array, size = " << n << ", random range [0, " << n << "]" << endl;
+    int n = 200;
     int* arr = SortTestHelper::generateRandomArray(n, 0, n);
-    testSort_nlogn(arr, n);
+    int* arr1 = SortTestHelper::copyIntArray(arr, n);
+    SortTestHelper::printArray(arr, n);
+    SortTestHelper::printArray(arr1, n);
+    quickSort3(arr1, n);
+    SortTestHelper::printArray(arr1, n);
 
+    bool ordered = SortTestHelper::isSorted(arr1, n);
+    bool isPermutation = SortTestHelper::isPermutation(arr, arr1, n, false);
+    cout << "ordered: " << ordered << endl;
+    cout << "isPermutation: " << isPermutation << endl;
 
-    //// 测试2 有序性更强的测试
-    //cout << "Test for more ordered random array, size = " << n << ", random range [0, 3]" << endl;
-    //arr = SortTestHelper::generateRandomArray(n, 0, 3);
-    //testSort_nlogn(arr, n);
+    delete[] arr;
+    delete[] arr1;
 
-
-    // 测试3 测试近乎有序的数组
-    int swapTimes = 100;
-    cout << "Test for nearly ordered array, size = " << n << ", swap time = " << swapTimes << endl;
-    arr = SortTestHelper::generateNearlyOrderedArray(n, swapTimes);
-    testSort_nlogn(arr, n);
-
-    return 0;
+    //int n = 17;
+    //int arr[] = { 6, 14, 8, 12, 4, 2, 5, 17, 9, 8, 7, 3, 4, 8, 4, 16, 9 };
+    //SortTestHelper::printArray(arr, n);
+    //quickSort3(arr, n);
+    //SortTestHelper::printArray(arr, n);
 }
+
+//int main(int argc, char* argv[]) {
+//
+//    int n = 1000000;
+//
+//    // 测试1 一般测试
+//    cout << "Test for random array, size = " << n << ", random range [0, " << n << "]" << endl;
+//    int* arr = SortTestHelper::generateRandomArray(n, 0, n);
+//    testSort_nlogn(arr, n);
+//
+//
+//    //// 测试2 有序性更强的测试
+//    //cout << "Test for more ordered random array, size = " << n << ", random range [0, 3]" << endl;
+//    //arr = SortTestHelper::generateRandomArray(n, 0, 3);
+//    //testSort_nlogn(arr, n);
+//
+//
+//    // 测试3 测试近乎有序的数组
+//    int swapTimes = 100;
+//    cout << "Test for nearly ordered array, size = " << n << ", swap time = " << swapTimes << endl;
+//    arr = SortTestHelper::generateNearlyOrderedArray(n, swapTimes);
+//    testSort_nlogn(arr, n);
+//
+//    return 0;
+//}
 
 template<typename T>
 void testSort(T* arr, int n) {
@@ -111,7 +117,7 @@ void testSort_nlogn(T* arr, int n) {
     int* arr3 = SortTestHelper::copyIntArray(arr, n);
     int* arr4 = SortTestHelper::copyIntArray(arr, n);
     int* arr5 = SortTestHelper::copyIntArray(arr, n);
-    int* arr6 = SortTestHelper::copyIntArray(arr, n);
+    //int* arr6 = SortTestHelper::copyIntArray(arr, n);
     int* arr7 = SortTestHelper::copyIntArray(arr, n);
 
     SortTestHelper::testSort("Shell Sort", shellSort, arr, arr1, n);
@@ -119,7 +125,7 @@ void testSort_nlogn(T* arr, int n) {
     SortTestHelper::testSort("Merge Sort", mergeSort, arr, arr3, n);
     SortTestHelper::testSort("Merge Sort2", mergeSort2, arr, arr4, n);
     SortTestHelper::testSort("Merge Sort BU", mergeSortBU, arr, arr5, n);
-    SortTestHelper::testSort("Quick Sort", quickSort, arr, arr6, n);
+    //SortTestHelper::testSort("Quick Sort", quickSort, arr, arr6, n);
     SortTestHelper::testSort("Quick Sort2", quickSort2, arr, arr7, n);
 
     delete[] arr;

@@ -91,4 +91,51 @@ void quickSort2(T arr[], int n) {
 	__quickSort2(arr, 0, n - 1);
 }
 
+// 双路快速排序的partition
+// 对arr[l...r]部分进行partition操作
+// 返回p, 使得arr[l+1...i] =< arr[p] ; arr[j...r] >= arr[p]
+template<typename T>
+int __partition3(T arr[], int l, int r) {
+
+	// 随机在arr[l...r]的范围中, 选择一个数值作为标定点pivot
+	swap(arr[l], arr[rand() % (r - l + 1) + l]);
+	T e = arr[l];
+
+	// arr[l+1...i) <= v; arr(j...r] >= v
+	int i = l + 1 , j = r;
+	while (true) {
+
+		while (i <= r && arr[i] < e) i++;
+		while (j >= l + 1 && arr[j] > e) j--;
+		if (i >= j) break;
+		swap(arr[i++], arr[j--]);
+	}
+	swap(arr[l], arr[j]);	// swap(arr[l], arr[i]); 是有可能跟arr[r+1] -> arr[n - 1 + 1] -> arr[n]交换的;
+
+	return j;
+}
+
+// 对arr[l...r]部分进行快速排序
+template<typename T>
+void __quickSort3(T arr[], int l, int r) {
+
+	if (l >= r)
+		return;
+	//if (r - l <= 15) {
+	//	insertionSort(arr, l, r);
+	//	return;
+	//}
+
+	int p = __partition3(arr, l, r);
+	__quickSort3(arr, l, p - 1);
+	__quickSort3(arr, p + 1, r);
+}
+
+template<typename T>
+void quickSort3(T arr[], int n) {
+
+	srand(time(NULL));
+	__quickSort3(arr, 0, n - 1);
+}
+
 #endif	//QUICK_SORT_H
