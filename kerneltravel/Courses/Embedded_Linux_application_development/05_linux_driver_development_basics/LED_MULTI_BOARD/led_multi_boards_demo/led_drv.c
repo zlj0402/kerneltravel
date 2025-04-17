@@ -32,7 +32,7 @@ static int led_open(struct inode *inode, struct file *file)
 {
 	int minor = iminor(inode);
 
-	printk("led_open: %s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+	printk("\n%s %s %d, minor: %d\n", __FILE__, __FUNCTION__, __LINE__, minor);
 	/* 根据次设备号初始化LED */
 	p_led_opr->init(minor);
 	
@@ -43,7 +43,7 @@ static int led_open(struct inode *inode, struct file *file)
 static ssize_t led_read(struct file *file, char __user *buf, size_t count,
 								loff_t *ppos)
 {
-	printk("led_read: %s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+	printk("\n%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 	return 0;
 }
 
@@ -54,6 +54,7 @@ static ssize_t led_write(struct file *file, const char __user *buf,
 	unsigned long err;
 	char status;
 	int minor = iminor(file_inode(file));
+	printk("\n%s %s %d, minor: %d\n", __FILE__, __FUNCTION__, __LINE__, minor);
 	err = copy_from_user(&status, buf, 1);
 	p_led_opr->ctl(minor, status);
 
@@ -62,7 +63,8 @@ static ssize_t led_write(struct file *file, const char __user *buf,
 
 static int led_release(struct inode *inode, struct file *file)
 {
-	printk("led_release: %s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+	int minor = iminor(inode);
+	printk("\n%s %s %d, minor: %d\n", __FILE__, __FUNCTION__, __LINE__, minor);
 	return 0;
 }
 
@@ -90,7 +92,7 @@ static int __init led_init(void)
 
 	led_class  = class_create(THIS_MODULE, LED_CLASS_NAME);
 	if (IS_ERR(led_class)) {
-		printk("%s %s line %d\n", __FILE__, __FUNCTION__, __LINE__);
+		printk("\n%s %s line %d\n", __FILE__, __FUNCTION__, __LINE__);
 		unregister_chrdev(major, CHRDEV_NAME);
 		return PTR_ERR(led_class);;
 	} 
