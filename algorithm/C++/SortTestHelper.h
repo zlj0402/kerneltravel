@@ -1,5 +1,5 @@
 //
-// Created by liangj.zhang on 13/4/2025
+// Created by liangj.zhang on 13/4/2025 -- updated on 18/4/205
 // Partially referenced from liuyubobobo's course on GitHub
 // URL: https://github.com/liuyubobobo/Play-with-Algorithms/tree/master/02-Sorting-Basic/Course%20Code%20(C%2B%2B)
 //
@@ -14,6 +14,12 @@
 #include <cassert>
 #include <string>
 #include <map>
+
+#define GEN_ARRAY_ASC(arr, n) \
+    do { for (int i = 0; i < (n); i++) (arr)[i] = i; } while (0)
+
+#define GEN_ARRAY_DESC(arr, n) \
+    do { for (int i = 0; i < (n); i++) (arr)[i] = (n) - 1 - i; } while (0)
 
 using namespace std;
 
@@ -39,8 +45,9 @@ namespace SortTestHelper {
     int* generateNearlyOrderedArray(int n, int swapTimes) {
 
         int* arr = new int[n];
-        for (int i = 0; i < n; i++)
-            arr[i] = i;
+        //for (int i = 0; i < n; i++)
+        //    arr[i] = i;
+        GEN_ARRAY_ASC(arr, n);
 
         srand(time(NULL));
         for (int i = 0; i < swapTimes; i++) {
@@ -48,6 +55,19 @@ namespace SortTestHelper {
             int posy = rand() % n;
             swap(arr[posx], arr[posy]);
         }
+
+        return arr;
+    }
+
+    // 生成一个有序的数组 [0, n-1]
+    int* generateOrderedArray(int n, bool ascending) {
+
+        int* arr = new int[n];
+
+        if (ascending)
+            GEN_ARRAY_ASC(arr, n);
+        else
+            GEN_ARRAY_DESC(arr, n);
 
         return arr;
     }
@@ -90,7 +110,7 @@ namespace SortTestHelper {
     bool isPermutation(T origin[], T src[], int n, bool debug) {
 
         bool ret = false;
-        
+
         // 判断操作之后的，src每个值的个数，是否和之前origin值的个数相同
         map<T, int> ori_map;
         map<T, int> src_map;
