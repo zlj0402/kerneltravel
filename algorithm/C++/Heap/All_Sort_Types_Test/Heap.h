@@ -1,5 +1,5 @@
 //
-// Created by liangj.zhang on 20/4/2025
+// Created by liangj.zhang on 20/4/2025 -- updated on 21/4/2025 
 // Partially referenced from liuyubobobo's course on GitHub
 // URL: https://github.com/liuyubobobo/Play-with-Algorithms/blob/master/04-Heap/Course%20Code%20(C%2B%2B)/03-Shift-Up/main.cpp
 //
@@ -16,11 +16,14 @@ template<typename Item>
 class MaxHeap {
 
 public:
+    // 构造函数, 构造一个空堆, 可容纳capacity个元素
     MaxHeap(int capacity) : capacity(capacity), count(0) {
 
         data = new Item[capacity + 1];
     }
 
+    // 构造函数, 通过一个给定数组创建一个最大堆
+    // 该构造堆的过程, 时间复杂度为O(n)
     MaxHeap(Item arr[], int n) : capacity(n), count(n) {
 
         data = new Item[n + 1];
@@ -37,14 +40,17 @@ public:
         delete[] data;
     }
 
+    // 返回堆中的元素个数
     int size() const {
         return count;
     }
 
+    // 返回一个布尔值, 表示堆中是否为空
     bool isEmpty() const {
         return count == 0;
     }
 
+    // 向最大堆中插入一个新的元素 item
     void insert(Item item) {
 
         assert(count + 1 <= capacity);
@@ -53,6 +59,7 @@ public:
         shiftUp(count);
     }
 
+    // 从最大堆中取出堆顶元素, 即堆中所存储的最大数据
     Item extractMax() {
 
         assert(count > 0);
@@ -61,6 +68,22 @@ public:
         swap(data[count--], data[1]);
         shiftDown(1);
         return top;
+    }
+
+    static void shiftDown_idx0(Item arr[], int n, int idx) {
+        
+        Item e = arr[idx];
+        int child;          // n - 1是堆数组最后一个下标;
+        while ((child = (idx << 1) + 1) <= n - 1) {     // 原来错误的写法：while ((child = idx << 1 + 1) <= n - 1); 加号+优先级高于左移运算符<<
+            
+            if (child < n - 1 && arr[child + 1] > arr[child]) child++;
+            if (arr[child] > e) {
+                arr[idx] = arr[child];
+                idx = child;
+            }
+            else break;
+        }
+        arr[idx] = e;
     }
 
     // 以树状打印整个堆结构

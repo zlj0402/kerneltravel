@@ -20,33 +20,33 @@ template<typename T>
 void testSort_nlogn(T* arr, int n);
 
 //int main(int argc, char* argv[]) {
+//    
+//    //int n = 6;
+//    //int* arr = SortTestHelper::generateRandomArray(n, 0, n);
+//    //int* arr1 = SortTestHelper::copyIntArray(arr, n);
+//    //SortTestHelper::printArray(arr, n);
+//    //SortTestHelper::printArray(arr1, n);
+//    //heapSort3(arr1, n);
+//    //SortTestHelper::printArray(arr1, n);
 //
-//    int n = 20000;
-//    int* arr = SortTestHelper::generateRandomArray(n, 0, n);
-//    int* arr1 = SortTestHelper::copyIntArray(arr, n);
+//    //bool ordered = SortTestHelper::isSorted(arr1, n);
+//    //bool isPermutation = SortTestHelper::isPermutation(arr, arr1, n, false);
+//    //cout << "ordered: " << ordered << endl;
+//    //cout << "isPermutation: " << isPermutation << endl;
+//
+//    //delete[] arr;
+//    //delete[] arr1;
+//
+//    int n = 6;
+//    int arr[] = { 5, 0, 4, 1, 5, 2 };
 //    SortTestHelper::printArray(arr, n);
-//    SortTestHelper::printArray(arr1, n);
-//    quickSort4(arr1, n);
-//    SortTestHelper::printArray(arr1, n);
-//
-//    bool ordered = SortTestHelper::isSorted(arr1, n);
-//    bool isPermutation = SortTestHelper::isPermutation(arr, arr1, n, false);
-//    cout << "ordered: " << ordered << endl;
-//    cout << "isPermutation: " << isPermutation << endl;
-//
-//    delete[] arr;
-//    delete[] arr1;
-//
-//    //int n = 17;
-//    //int arr[] = { 6, 14, 8, 12, 4, 2, 5, 17, 9, 8, 7, 3, 4, 8, 4, 16, 9 };
-//    //SortTestHelper::printArray(arr, n);
-//    //quickSort3(arr, n);
-//    //SortTestHelper::printArray(arr, n);
+//    heapSort3(arr, n);
+//    SortTestHelper::printArray(arr, n);
 //}
 
 int main(int argc, char* argv[]) {
 
-    int n = 1000000;
+    int n = 10000000;
 
     // 测试1 一般测试
     cout << "Test for random array, size = " << n << ", random range [0, " << n << "]" << endl;
@@ -96,6 +96,7 @@ void testSort(T* arr, int n) {
     int* arr13 = SortTestHelper::copyIntArray(arr, n);
     int* arr14 = SortTestHelper::copyIntArray(arr, n);
     int* arr15 = SortTestHelper::copyIntArray(arr, n);
+    int* arr16 = SortTestHelper::copyIntArray(arr, n);
 
     SortTestHelper::testSort("Insertion Sort", insertionSort, arr, arr1, n);
     SortTestHelper::testSort("Shell Sort", shellSort, arr, arr2, n);
@@ -112,6 +113,7 @@ void testSort(T* arr, int n) {
     SortTestHelper::testSort("Quick Sort4", quickSort4, arr, arr13, n);
     SortTestHelper::testSort("Heap Sort", heapSort, arr, arr14, n);
     SortTestHelper::testSort("Heap Sort2", heapSort2, arr, arr15, n);
+    SortTestHelper::testSort("Heap Sort3", heapSort3, arr, arr16, n);
 
     delete[] arr;
     delete[] arr1;
@@ -129,6 +131,7 @@ void testSort(T* arr, int n) {
     delete[] arr13;
     delete[] arr14;
     delete[] arr15;
+    delete[] arr16;
 
     cout << endl;
 }
@@ -146,6 +149,7 @@ void testSort_nlogn(T* arr, int n) {
     int* arr9 = SortTestHelper::copyIntArray(arr, n);
     int* arr10 = SortTestHelper::copyIntArray(arr, n);
     int* arr11 = SortTestHelper::copyIntArray(arr, n);
+    int* arr12 = SortTestHelper::copyIntArray(arr, n);
 
     SortTestHelper::testSort("Shell Sort", shellSort, arr, arr1, n);
     SortTestHelper::testSort("Shell Sort2", shellSort2, arr, arr2, n);
@@ -158,6 +162,7 @@ void testSort_nlogn(T* arr, int n) {
     SortTestHelper::testSort("Quick Sort4", quickSort4, arr, arr9, n);
     SortTestHelper::testSort("Heap Sort", heapSort, arr, arr10, n);
     SortTestHelper::testSort("Heap Sort2", heapSort2, arr, arr11, n);
+    SortTestHelper::testSort("Heap Sort3", heapSort3, arr, arr12, n);
 
     delete[] arr;
     delete[] arr1;
@@ -171,6 +176,7 @@ void testSort_nlogn(T* arr, int n) {
     delete[] arr9;
     delete[] arr10;
     delete[] arr11;
+    delete[] arr12;
 
     cout << endl;
 }
