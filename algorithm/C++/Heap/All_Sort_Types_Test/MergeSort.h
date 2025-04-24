@@ -1,5 +1,7 @@
 //
-// Created by liangj.zhang on 13/4/2025 15/4/2025_BU
+// Created by liangj.zhang on 13/4/2025 last update: 24/4/2025
+// update 15/4/2025: add mergeSortBU
+// update 24/4/2025: recover mergeSort stable sort property
 //
 
 #include "InsertionSort.h"
@@ -23,7 +25,7 @@ void __merge(T arr[], int l, int mid, int r) {
 		else if (j > r - l) {		// 原来错误的写法：j > r
 			arr[k] = tmp[i++];
 		} // 左半部分所指元素 < 右半部分所指元素
-		else if (tmp[i] < tmp[j]) {
+		else if (tmp[i] <= tmp[j]) {	// 原来写法：tmp[i] < tmp[j] => 这会使得归并排序成为不稳定的排序
 			arr[k] = tmp[i++];
 		} // 左半部分所指元素 >= 右半部分所指元素
 		else {
