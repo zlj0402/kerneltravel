@@ -1,5 +1,6 @@
 //
-// Created by liangj.zhang on 16/4/2025
+// Created by liangj.zhang on 16/4/2025, last updated on 27/4/2025
+// updated on 27/4/2025: add annotation for quickSort2Ways comparasion condition
 //
 
 #ifndef QUICK_SORT_H
@@ -108,7 +109,7 @@ int __partition3(T arr[], int l, int r) {
 	while (true) {
 
 		while (i <= r && arr[i] < v) i++;
-		while (j >= l + 1 && arr[j] > v) j--;
+		while (j >= l + 1 && arr[j] > v) j--;	// 不太正确的写法：while (j >= l + 1 && arr[j] >= v)，加上 ==，还是有可能会爆栈；双路随机，本就是为了解决随机快排的爆站问题；
 		if (i >= j) break;
 		swap(arr[i++], arr[j--]);
 	}
