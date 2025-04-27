@@ -1,6 +1,7 @@
 //
 // Created by liangj.zhang on 16/4/2025, last updated on 27/4/2025
 // updated on 27/4/2025: add annotation for quickSort2Ways comparasion condition
+// 					   _2: add optimization of three-way quick sorting
 //
 
 #ifndef QUICK_SORT_H
@@ -166,7 +167,8 @@ void __quickSort4(T arr[], int l, int r) {
 	while (i < gt) {
 
 		if (arr[i] < v) {
-			swap(arr[i], arr[lt + 1]);
+			if (i != lt + 1)
+				swap(arr[i], arr[lt + 1]);
 			lt++;
 			i++;
 			//swap(arr[i++], arr[++lt]);	// 一步搞定
