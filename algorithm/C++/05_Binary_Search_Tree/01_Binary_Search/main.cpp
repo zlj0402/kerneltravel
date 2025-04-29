@@ -1,10 +1,14 @@
-#include "../../SortTestHelper.h"
-#include "../../Sorting_Advance/All_Sort_Types_Test/MergeSort.h"
+#include "../../Include/SortTestHelper.h"
+#include "../../Include/SortAlgorithms/MergeSort.h"
 #include "load.h"
 
+// 二分查找法,在有序数组arr中,查找target
+// 如果找到target,返回相应的索引index
+// 如果没有找到target,返回-1
 template<typename T>
 int binarySearch(T arr[], int n, T target) {
 
+	// 在arr[l...r]之中查找target
 	int l = 0;
 	int r = n - 1;
 	while (l <= r) {
@@ -21,7 +25,7 @@ int binarySearch(T arr[], int n, T target) {
 	return -1;
 }
 
-// 在 [l, r] 之中，找到 target
+// 用递归的方式写二分查找法
 template<typename T>
 int __binarySearch2(T arr[], int l, int r, T& target) {
 
@@ -32,9 +36,9 @@ int __binarySearch2(T arr[], int l, int r, T& target) {
 	if (arr[mid] == target)
 		return mid;
 	else if (target < arr[mid])
-		return __binarySearch2(arr, l, mid - 1, target);
+		return __binarySearch2(arr, l, mid - 1, target);	// 原来漏了 return
 	else
-		return __binarySearch2(arr, mid + 1, r, target);
+		return __binarySearch2(arr, mid + 1, r, target);	// 原来漏了 return
 }
 
 template<typename T>

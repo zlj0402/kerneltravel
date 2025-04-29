@@ -4,7 +4,7 @@
 // 					   _2: #include TopK.h && TopK_QuickSort class support both top smallest and top largest
 //
 
-#include "../../SortTestHelper.h"
+#include "../../Include/SortTestHelper.h"
 // MergeSort is for sorting help to confirm the result of TopK problem
 #include "../All_Sort_Types_Test/MergeSort.h"
 #include "TopK.h"

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <algorithm>
-#include "../../SortTestHelper.h"
+#include "../../Include/SortTestHelper.h"
 #include "SelectionSort.h"
 #include "InsertionSort.h"
 #include "BubbleSort.h"

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../../SortTestHelper.h"
+#include "../../Include/SortTestHelper.h"
 #include "load.h"
 
 using namespace std;

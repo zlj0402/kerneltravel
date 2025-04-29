@@ -5,9 +5,9 @@
 // updated on 28/4/2025: add Heap Way test in main.cpp
 //
 
-#include "../../SortTestHelper.h"
+#include "../../Include/SortTestHelper.h"
 // MergeSort is for sorting help to confirm the result of TopK problem
-#include "../All_Sort_Types_Test/MergeSort.h"
+#include "../../Include/SortAlgorithms/MergeSort.h"
 #include "TopK.h"
 #include <vector>
 
