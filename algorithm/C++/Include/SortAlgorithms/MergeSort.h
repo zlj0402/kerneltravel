@@ -4,9 +4,6 @@
 // update 24/4/2025: recover mergeSort stable sort property
 //
 
-#ifndef MERGE_SORT_H
-#define MERGE_SORT_H
-
 #include "InsertionSort.h"
 
 // 将arr[l...mid]和arr[mid+1...r]两部分进行归并
@@ -68,8 +65,8 @@ void __mergeSort2(T arr[], int l, int r) {
 	}
 
 	int mid = (l + r) / 2;
-	__mergeSort2(arr, l, mid);
-	__mergeSort2(arr, mid + 1, r);
+	__mergeSort(arr, l, mid);
+	__mergeSort(arr, mid + 1, r);
 	if (arr[mid] > arr[mid + 1])	// 对近乎有序的数组有效; arr[mid]是左边最大，arr[mid+1]是右边最小;
 		__merge(arr, l, mid, r);
 }
@@ -96,5 +93,3 @@ void mergeSortBU(T arr[], int n) {
 		}
 	}
 }
-
-#endif	//MERGE_SORT_H
