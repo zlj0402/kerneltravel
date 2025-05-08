@@ -8,6 +8,7 @@
 #include <asm/io.h>
 #include <asm/page.h>
 #include <linux/timer.h>
+#include <linux/delay.h>
 #include <linux/of.h>
 #include <linux/gpio/consumer.h>
 
@@ -28,9 +29,9 @@ static struct class* led_drv_class;
 static struct gpio_desc* led_gpio;
 
 static char led_ver_buf[BUF_LEN];
-static struct hrtimer timer;
+static struct hrtimer on_timer;
+static struct hrtimer off_timer;
 
-static unsigned int led_status = 0;
 static int led_counter = 1;
 static int led_step = -1;
 
@@ -41,17 +42,12 @@ static int led_step = -1;
  */
 static int led_fpos_open(struct inode *inode, struct file *file)
 {
-	 
-	/* config pins as gpio mode*/
-	//*IOMUXC_SNVS_SW_MUX_CTL_PAD_SNVS_TAMPER3 &= ~0xf;
-	//*IOMUXC_SNVS_SW_MUX_CTL_PAD_SNVS_TAMPER3 |= 0x5;
-
-	/* config gpio as output */
-	//*GPIO5_GDIR |= (1 << 3);
-	
 	printk("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
-	/* 根据此设备号初始化LED */
+	/* 1. gpio module enabled defualtly */
+	/* 2. already configured as gpio mode in device tree & pinctrl */
+	/* 3. already get gpio pin in file_ops.probe: led_gpio = gpiod_get(&pdev->dev, "led", 0); */
+	
+	/* 4. config gpio as output */
 	gpiod_direction_output(led_gpio, 0);
 	
 	return 0;
@@ -63,42 +59,76 @@ static int led_fops_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static void led_glitter(void)
+static enum hrtimer_restart off_timer_cb(struct hrtimer* hrtimer)
 {
+	enum hrtimer_restart ret = HRTIMER_NORESTART;
+
+	gpiod_set_value(led_gpio, 0);	// 熄灭
+
+    // 更新闪烁周期
+    if (led_counter == 1 || led_counter == 10)
+        led_step *= -1;
+    led_counter += led_step;
+
+	// 设置下一次点亮
+    hrtimer_start(&on_timer, TIMES_INTERVAL(led_counter), HRTIMER_MODE_REL);
 	
-	gpiod_set_value(led_gpio, 1);
-	gpiod_set_value(led_gpio, 0);
-	
-	if (led_counter == 1 || led_counter == 10)
-		led_step *= -1;
-	led_counter += led_step;
+    return ret;
+
 }
 
-static enum hrtimer_restart monitor_handler(struct hrtimer *hrtimer)
+static enum hrtimer_restart on_timer_cb(struct hrtimer *hrtimer)
 {
-	enum hrtimer_restart ret = HRTIMER_RESTART;
+	enum hrtimer_restart ret = HRTIMER_NORESTART;
 
-	/* xor set gpio5_3 status by specified ktime */
-	led_glitter();
-	hrtimer_forward_now(hrtimer, TIMES_INTERVAL(led_counter));
-	// printk("time interval: %dms\n", led_counter * MIN_INTERVAL);
+	gpiod_set_value(led_gpio, 1); // 点亮
+
+	// 安排 100ms 后熄灭
+    hrtimer_start(&off_timer, ms_to_ktime(100), HRTIMER_MODE_REL);
+	
 	return ret;
 }
 
-static void start_timer(void)
+static void led_init_timer(void)
 {
-
-    if (!timer.function) {  // 仅在 function 未赋值时初始化
-        hrtimer_init(&timer, CLOCK_MONOTONIC, HRTIMER_MODE_PINNED);
-        timer.function = monitor_handler;
+    if (!on_timer.function) {  // 仅在 function 未赋值时初始化
+        hrtimer_init(&on_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+        on_timer.function = on_timer_cb;
     }
+
+	if (!off_timer.function) {
+		hrtimer_init(&off_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+		off_timer.function = off_timer_cb;
+	}
+}
+
+static void led_start_timer(void)
+{
+	led_init_timer();
 
 	// if (hrtimer_active(&timer))	// 第一次调用write时，会因为timer没有初值，造成错误：Unable to handle kernel NULL pointer dereference at virtual address 00000000
         // return;  // 避免重复启动
-	if (hrtimer_is_queued(&timer)) 
+	if (hrtimer_is_queued(&on_timer)) 
 		return;
 
-	hrtimer_start_range_ns(&timer, TIMES_INTERVAL(2), 0, HRTIMER_MODE_REL_PINNED);
+	// 以点亮为起始操作，牵动熄灭操作; 熄灭操作起始也没问题，会多一步无用熄灭操作;
+	hrtimer_start_range_ns(&on_timer, TIMES_INTERVAL(30), 0, HRTIMER_MODE_REL);
+}
+
+static void led_cancel_timer(void)
+{
+	if (on_timer.function && hrtimer_active(&on_timer)) {
+
+		printk("hrtimer_cancel in %s %d %s\n", __FUNCTION__, __LINE__, __FILE__);
+		hrtimer_cancel(&on_timer);
+	}
+		
+	if (off_timer.function && hrtimer_active(&off_timer)) {
+
+		printk("hrtimer_cancel in %s %d %s\n", __FUNCTION__, __LINE__, __FILE__);
+		hrtimer_cancel(&off_timer);
+	}
+	
 }
 
 static ssize_t led_fpos_write(struct file *file, const char __user *buf,
@@ -106,6 +136,7 @@ static ssize_t led_fpos_write(struct file *file, const char __user *buf,
 {
 	unsigned int err;
 	char val;
+	
 	/* copy_from user : get data from APP */
 	err = copy_from_user(&val, buf, 1);
 	if (err > 0)
@@ -113,22 +144,20 @@ static ssize_t led_fpos_write(struct file *file, const char __user *buf,
 		printk("copy_from_user failed, uncopied character count(er)= %du\n", err);
 		return -EFAULT;
 	}
-
-	/* 根据次设备号和status控制LED */
-	led_status = (unsigned int)val;
-	gpiod_set_value(led_gpio, led_status);
 	
-	/* to set gpio register : output 1/0 */
+	/* to set gpio data register : output 1/0 */
 	if (val)
 	{
-		//start_timer();
+		led_start_timer();
+		printk("start timer!!!\n");
 	}
 	else
 	{
-		if (timer.function && hrtimer_active(&timer))
-			hrtimer_cancel(&timer);
+		led_cancel_timer();
+		printk("end timer!!!\n");
+		
 		/* set gpio to let led off */
-		//*GPIO5_DR |= (1 << 3);	// 使引脚为高电平
+		gpiod_set_value(led_gpio, 0);
 	}
 
 	return err;
@@ -193,11 +222,7 @@ static int led_probe(struct platform_device *pdev)
 
 static int led_remove(struct platform_device *pdev)
 {
-	if (timer.function && hrtimer_active(&timer))
-	{
-		printk("hrtimer_cancel in %s %d %s\n", __FUNCTION__, __LINE__, __FILE__);
-		hrtimer_cancel(&timer);
-	}
+	led_cancel_timer();
 
 	device_destroy(led_drv_class, MKDEV(major, 0));
 	class_destroy(led_drv_class);

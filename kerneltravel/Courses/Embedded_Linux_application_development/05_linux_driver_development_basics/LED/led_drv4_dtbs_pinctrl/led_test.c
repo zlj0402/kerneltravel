@@ -21,8 +21,8 @@ int main(int argc, char* argv[])
 	if (argc != 3)
 	{
 		printf("Usage: %s <dev> <on|off>\n", argv[0]);
-		printf("	eg: %s /dev/%s on", argv[0], LED_DEV_NAME);
-		printf("	eg: %s /dev/%s off", argv[0], LED_DEV_NAME);
+		printf("	eg: %s /dev/%s on\n", argv[0], LED_DEV_NAME);
+		printf("	eg: %s /dev/%s off\n", argv[0], LED_DEV_NAME);
 		return -1;
 	}
 	
