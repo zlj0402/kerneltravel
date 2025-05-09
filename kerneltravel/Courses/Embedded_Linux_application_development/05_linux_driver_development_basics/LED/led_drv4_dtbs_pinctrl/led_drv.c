@@ -15,12 +15,12 @@
 #include "load.h"
 
 #define BUF_LEN 128
-#define LED_CHRDEV_NAME "zlj_led"
-#define LED_DEV_NAME "zljled"
-#define LED_DRV_CLASS_NAME "zlj_led_drv"
-#define LED_DEVICE_NAME "zlj_led_drv_"
-#define DT_VERSION "version"
-#define DT_IDS_COMPATIBLE "zlj_led_drv"
+#define LED_CHRDEV_NAME "zlj_led"			// 注册的字符驱动程序的名称
+#define LED_DEV_NAME "zljled"				// device_create，在 /dev/... 下面创建的设备名称
+#define LED_DRV_CLASS_NAME "zlj_led_drv"	// class_create，为了在该 class 下面，创建该类型的 dev 设备于 /dev/... 下面
+#define LED_DEVICE_NAME "zlj_led_drv_"		// 如果不是设备树生成的节点，.driver.name 是用于与手动注册的 platform_device.name 进行匹配的关键字段；而如果是设备树生成的设备，.driver.name 不参与匹配，只起到标识用途，.of_match_table 才是唯一有效的匹配方式。
+#define DT_VERSION_PROP "version"			// 为了从 platform_device 那里得到一个设备节点里的 version 属性值
+#define DT_IDS_COMPATIBLE "zlj_led_drv"		// 为了 platform_driver.driver.of_match_table 能够匹配设备树节点中 platfomr_device 的 compatible 属性值
 #define MIN_INTERVAL 100
 #define TIMES_INTERVAL(n) (ms_to_ktime(MIN_INTERVAL * n))
 
@@ -187,7 +187,7 @@ static int led_probe(struct platform_device *pdev)
 	}
 	
 	/* 从匹配的platform_device 当中得到版本信息 */
-	err = of_property_read_string_index(pdev->dev.of_node, DT_VERSION, 0, &vers);
+	err = of_property_read_string_index(pdev->dev.of_node, DT_VERSION_PROP, 0, &vers);
 	if (err < 0)
 		vers = "no version";
 	len = strlen(vers) + 1;
