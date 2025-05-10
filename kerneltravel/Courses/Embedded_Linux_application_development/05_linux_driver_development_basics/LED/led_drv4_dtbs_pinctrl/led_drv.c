@@ -11,6 +11,8 @@
 #include <linux/delay.h>
 #include <linux/of.h>
 #include <linux/gpio/consumer.h>
+#include <linux/of_gpio.h>
+#include <asm-generic/gpio.h>
 
 #include "load.h"
 
@@ -23,6 +25,8 @@
 #define DT_IDS_COMPATIBLE "zlj_led_drv"		// 为了 platform_driver.driver.of_match_table 能够匹配设备树节点中 platfomr_device 的 compatible 属性值
 #define MIN_INTERVAL 100
 #define TIMES_INTERVAL(n) (ms_to_ktime(MIN_INTERVAL * n))
+#define GPIO_PINS_PER_BANK    32
+
 
 static int major;
 static struct class* led_drv_class;
@@ -175,6 +179,9 @@ static int led_probe(struct platform_device *pdev)
 	int len;
 	int err;
 	const char* vers;
+	int gpio_num;
+	int bank = -1;
+	int offset = -1;
 
 	printk("%s %s line %d\n", __FILE__, __FUNCTION__, __LINE__);
 
@@ -185,6 +192,17 @@ static int led_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to get GPIO for led\n");
 		return PTR_ERR(led_gpio);
 	}
+
+	/* 得到   led_gpio 对应的引脚号 */
+	gpio_num = of_get_named_gpio(pdev->dev.of_node, "led-gpios", 0);
+	printk("gpio_num: %d\n", gpio_num);
+	if (!gpio_is_valid(gpio_num)) {
+	    pr_err("Invalid GPIO\n");
+	    return -EINVAL;
+	}
+	bank = gpio_num / GPIO_PINS_PER_BANK + 1;
+	offset = gpio_num % GPIO_PINS_PER_BANK;
+	printk("Got led_gpio: GPIO%d_%d\n", bank, offset);
 	
 	/* 从匹配的platform_device 当中得到版本信息 */
 	err = of_property_read_string_index(pdev->dev.of_node, DT_VERSION_PROP, 0, &vers);
