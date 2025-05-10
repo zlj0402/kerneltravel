@@ -1,6 +1,7 @@
 ﻿//
-// finished by liangj.zhang on 10/5/2025, porting on 10/5/2025, last updated on xx/xx/xxx
-// updated on xx/xx/xxxx: 
+// finished by liangj.zhang on 10/5/2025, porting on 10/5/2025, last updated on 10/5/2025
+// updated on 10/5/2025: cp remove from liuyubobobo's git, find minimum node from right child tree
+// 							GitHub URL: https://github.com/liuyubobobo/Play-with-Algorithms/blob/master/05-Binary-Search-Tree/Course%20Code%20(C%2B%2B)/08-Binary-Search-Tree-Remove/main.cpp
 //
 
 #include <iostream>
@@ -128,7 +129,11 @@ public:
 
 	// 从二叉树搜索树中，删除键值为 key 的节点
 	void remove(Key key) {
+
+		// 1. 方式一
 		root = remove(root);
+		// 2. 方式二
+		//root = remove2(root);
 	}
 
 private:
@@ -270,7 +275,7 @@ private:
 
 	// 在以 node 为根的 BST 中，返回最大键值的节点
 	Node* maximum(Node* node) {
-		
+
 		if (!node->right)
 			return node;
 
@@ -280,9 +285,9 @@ private:
 	// 删除掉以 node 为根的二叉搜索树中的最小节点
 	// 返回删除节点后新的二叉搜索树的根
 	Node* removeMin(Node* node) {
-		
+
 		if (node->left == nullptr) {
-			
+
 			Node* rightNode = node->right;
 			delete node;
 			count--;
@@ -296,9 +301,9 @@ private:
 	// 删除掉以 node 为根的二叉搜索树的最大节点
 	// 返回删除节点后新的二叉搜索树
 	Node* removeMax(Node* node) {
-		
+
 		if (node->right == nullptr) {
-			
+
 			Node* leftNode = node->left;
 			delete node;
 			count--;
@@ -312,7 +317,7 @@ private:
 	// 删除掉以 node 为根的二分搜索树中键值为 key 的节点
 	// 返回删除节点后新的二分搜索树的根
 	Node* remove(Node* node, Key key) {	// 时间复杂度：O(logn)
-		
+
 		if (!node)
 			return nullptr;
 
@@ -356,6 +361,74 @@ private:
 			}
 		}
 
+	}
+
+	// 删除掉以node为根的二分搜索树中的最大节点, 递归算法
+	// 返回删除节点后新的二分搜索树的根
+	Node* removeMax(Node* node) {
+
+		if (node->right == NULL) {
+
+			Node* leftNode = node->left;
+			delete node;
+			count--;
+			return leftNode;
+		}
+
+		node->right = removeMax(node->right);
+		return node;
+	}
+
+	// 删除掉以node为根的二分搜索树中键值为key的节点, 递归算法
+	// 返回删除节点后新的二分搜索树的根
+	Node* remove2(Node* node, Key key) {
+
+		if (node == NULL)
+			return NULL;
+
+		if (key < node->key) {
+			node->left = remove(node->left, key);
+			return node;
+		}
+		else if (key > node->key) {
+			node->right = remove(node->right, key);
+			return node;
+		}
+		else {   // key == node->key
+
+			// 待删除节点左子树为空的情况
+			if (node->left == NULL) {
+				Node* rightNode = node->right;
+				delete node;
+				count--;
+				return rightNode;
+			}
+
+			// 待删除节点右子树为空的情况
+			if (node->right == NULL) {
+				Node* leftNode = node->left;
+				delete node;
+				count--;
+				return leftNode;
+			}
+
+			// 此次方式，是找到右子树最小的节点，替换删除节点的位置
+			//
+			// 待删除节点左右子树均不为空的情况
+
+			// 找到比待删除节点大的最小节点, 即待删除节点右子树的最小节点
+			// 用这个节点顶替待删除节点的位置
+			Node* successor = new Node(minimum(node->right));
+			count++;
+
+			successor->right = removeMin(node->right);
+			successor->left = node->left;
+
+			delete node;
+			count--;
+
+			return successor;
+		}
 	}
 };
 
