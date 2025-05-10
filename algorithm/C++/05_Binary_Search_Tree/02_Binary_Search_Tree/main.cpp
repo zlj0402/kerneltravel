@@ -10,6 +10,8 @@
 #include <cassert>
 #include "FileOps.h"
 
+#include "load.h"
+
 using namespace std;
 
 template<typename Key, typename Value>
@@ -74,7 +76,7 @@ public:
 		inOrder(root);
 	}
 
-	// 后续遍历
+	// 后序遍历
 	void postOrder() {
 		postOrder(root);
 	}
