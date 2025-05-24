@@ -46,7 +46,7 @@ namespace UF5 {
 				parent[p] = parent[parent[p]];
 				p = parent[p];
 			}
-			return p;
+			return p;	// return 时 p 一定是 root 节点
 		}
 
 		bool isConnected(int p, int q) {
