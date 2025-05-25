@@ -9,6 +9,13 @@
  * 		3. 当用户调用 close(fd)，或者程序结束，fd 被内核自动回收时，就会触发 led_release;
  * 			我们在其中，调用我们自己定义的struct led_operations结构的exit，去iounmap映射的虚拟地址;
  *
+ * @projects_structure:
+ * 		1. board_A_led.c => 纯硬件配置（引脚...）; 提供具体的硬件配置 & 对象（struct led_resource）
+ * 		2. led_resource.h => 提供 board_A_led.c 的实现的 API 头文件;
+ *
+ * 		3. chip_demo_gpio.c => 提供 led_operations 对象 & 具体实现;
+ * 		4. led_operations.h => 提供 chip_demo_gpio.c 的实现 API 头文件;
+ *
  * @steps:
  *		1. Makefile同路径下，执行：make
  * 		2. cp led_test zlj_led_drv.ko到开发板和ubuntu共享的目录中
