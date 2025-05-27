@@ -1,6 +1,9 @@
 /**
  * @brief: GPIO: LED driver; LED glitters by waved-like time interval; -- platfrom_driver && platform_device(dtbs) -- only one led -- seperate led_hrtimer module & led_operations module from led_drv.c module -- 27/5/2025
  *
+ * @updated:
+ * 		+ 27/5/2025: add protection guard in led_hrtimer.h
+ *
  * @project_structure:
  * 		+ chip_imx6ull_gpio.c
  * 		+ led_opertions.h => 这两是配套的，集合对 led 的操作封装; 接口与实现分离;
