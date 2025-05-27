@@ -1,3 +1,6 @@
+#ifndef LED_HRTIMER_H
+#define LED_HRTIMER_H
+
 #include <linux/timer.h>
 
 #include "led_operations.h"
@@ -73,4 +76,6 @@ void led_hrtimer_stop(struct led_hrtimer *led)
 	if (hrtimer_active(&led->off_timer))
 		hrtimer_cancel(&led->off_timer);
 }
+
+#endif
 

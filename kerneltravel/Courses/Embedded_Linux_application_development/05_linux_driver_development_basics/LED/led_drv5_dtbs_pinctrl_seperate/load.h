@@ -1,6 +1,16 @@
 /**
  * @brief: GPIO: LED driver; LED glitters by waved-like time interval; -- platfrom_driver && platform_device(dtbs) -- only one led -- seperate led_hrtimer module & led_operations module from led_drv.c module -- 27/5/2025
  *
+ * @project_structure:
+ * 		+ chip_imx6ull_gpio.c
+ * 		+ led_opertions.h => 这两是配套的，集合对 led 的操作封装; 接口与实现分离;
+ *
+ * 		+ led_hrtimer.h => 集合了对 p_led_opr（即 led_gpio） 的控制; 接口与实现未分离;
+ *
+ * 		+ led_drv.c => 驱动程序; platform_driver 匹配之后，会注册字符驱动程序;
+ *
+ * 		+ led_test.c => 驱动的测试程序;
+ *
  * @steps:
  *      1. 驱动的 总线-设备-驱动 分离模型进行，可以完全参考git:
  *      	kerneltravel/Courses/Embedded_Linux_application_development/writing_APP_to_operate_hardware/first_drv/hello_drv_v3_dtbs
@@ -159,6 +169,7 @@
  * 				+ 使用起来是 led_hrtimer_init(&led_timer, p_led_opr); 
  * 							led_hrtimer_stop(&led_timer);
  * 							确实好像能，对任意传进来的 led_hrtimer 对象进行操作;
+ * 				+ led_hrtimer.h 是实现与接口没有分离，外界可以看到源码;
  *
  * 
  * @execute & steps:
