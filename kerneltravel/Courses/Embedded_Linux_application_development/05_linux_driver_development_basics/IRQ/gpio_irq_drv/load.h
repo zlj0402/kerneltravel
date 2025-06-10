@@ -117,4 +117,4 @@
  * 			4.3 insmod .ko
  * 			4.4 按下开发板上的 key1, key2
  * 		5. 查看中断统计和分配情况：cat /proc/interrupts
- * /
+ */

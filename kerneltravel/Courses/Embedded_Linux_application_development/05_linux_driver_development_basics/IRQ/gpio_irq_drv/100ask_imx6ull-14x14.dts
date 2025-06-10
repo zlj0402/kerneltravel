@@ -125,6 +125,9 @@
 	
     zlj_gpio_key {
         compatible = "zlj,gpio_key";
+        pinctrl-names = "default";
+        pinctrl-0 = <&irq_key1_zlj &irq_key2_zlj>;
+		
 		gpios = <&gpio5 1 GPIO_ACTIVE_LOW
 					&gpio4 14 GPIO_ACTIVE_LOW>;
 	};
@@ -433,7 +436,15 @@
 &iomuxc {
     pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_hog_1>;
+	
     imx6ul-evk {
+	
+		irq_key2_zlj: irq_key2_zlj {
+			fsl,pins = <
+				MX6UL_PAD_NAND_CE1_B__GPIO4_IO14           0x000010B0
+			>;
+		};
+		
         pinctrl_hog_1: hoggrp-1 {
             fsl,pins = <
                 MX6UL_PAD_UART1_RTS_B__GPIO1_IO19   0x17059 /* SD1 CD */
@@ -733,11 +744,20 @@
 &iomuxc_snvs {
     pinctrl-names = "default_snvs";
     pinctrl-0 = <&pinctrl_hog_2>;
+	
+	irq_key1_zlj: irq_key1_zlj {
+		fsl,pins = <
+			MX6ULL_PAD_SNVS_TAMPER1__GPIO5_IO01        0x000110A0
+		>;
+	};
+	
 	zlj_led_for_gpio_subsys: zlj_led_for_gpio_subsys {        /*!< Function assigned for the core: Cortex-A7[ca7] */
-           	fsl,pins = <
-                MX6ULL_PAD_SNVS_TAMPER3__GPIO5_IO03        0x000110A0
-            >;
-    };
+			fsl,pins = <
+				MX6ULL_PAD_SNVS_TAMPER3__GPIO5_IO03        0x000110A0
+			>;
+	};
+		
+	
     imx6ul-evk {
         pinctrl_hog_2: hoggrp-2 {
             fsl,pins = <
