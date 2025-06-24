@@ -22,21 +22,59 @@ struct gpio_key {
 };
 
 static struct gpio_key* gpio_keys;
-static struct class* gpio_key_class;
+/* 主设备号 */
 static int major;
-static int g_key;
+static struct class* gpio_key_class;
+
 static wait_queue_head_t gpio_key_wait;
 static DECLARE_WAIT_QUEUE_HEAD(gpio_key_wait);
+
+/* 循环队列 */
+#define MAXGKEYS 128
+#define NEXT_POS(x) ((x + 1) % MAXGKEYS) 
+static int g_keys[MAXGKEYS];
+static int f, r;
+
+static bool is_key_buf_empty(void) {
+	return f == r;
+}
+
+static bool is_key_buf_full(void) {
+	return f == NEXT_POS(r);
+}
+
+static void put_key(int key) {
+
+	if (!is_key_buf_full()) {
+		
+		g_keys[r] = key;
+		r = NEXT_POS(r);
+	}
+}
+
+static int get_key(void) {
+
+	int key = 0;
+	if (!is_key_buf_empty()) {
+		
+		key = g_keys[f];
+		f = NEXT_POS(f);
+	}
+	return key;
+}
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> file_operations & fops.read <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 ssize_t gpio_key_drv_read(struct file *file, char __user *buf, size_t size, loff_t *off) {
 
 	int err;
+	int key;
+	
+	wait_event_interruptible(gpio_key_wait, !is_key_buf_empty());
+	key = get_key();
+	err = copy_to_user(buf, &key, sizeof(int));
 
-	wait_event_interruptible(gpio_key_wait, g_key);
-	err = copy_to_user(buf, &g_key, sizeof(int));
-	g_key = 0;
-
-	return 4;
+	return sizeof(int);
 }
 
 
@@ -52,10 +90,13 @@ static irqreturn_t gpio_key_irq_zlj(int irq, void* dev_id) {
 
 	struct gpio_key* gpio_key = dev_id;
 	int val;
+	int key;
+	
 	val = gpiod_get_value(gpio_key->gpiod);
 	
 	printk("key %d val %d\n", irq, gpio_get_value(gpio_key->gpio));
-	g_key = (gpio_key->gpio << 8) | val;
+	key = (gpio_key->gpio << 8) | val;
+	put_key(key);
 	wake_up_interruptible(&gpio_key_wait);
 	
 	return IRQ_HANDLED;
