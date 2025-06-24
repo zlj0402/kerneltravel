@@ -6,7 +6,7 @@
  * 					+ 【第二十章】驱动程序基石
  * 						+ 01_休眠与唤醒
  *
- * @steps:
+ * @descriptions:
  * 		1. dts 修改：
  * 			1.1 给 iomuxc_snvs 节点添加了一个 GPIO 配置（pinctrl） 节点 irq_key1_zlj，目的是将 MX6ULL_PAD_SNVS_TAMPER1（GPIO5_IO01）配置好，以便驱动里用作中断（IRQ）。
  * 				&iomuxc_snvs {
@@ -153,24 +153,39 @@
  *				+ 成立就继续执行;
  *				+ 否则（理论上不成立的概率很小），会再次睡眠;
  *			>>>>>>>>>>> end <<<<<<<<<<<
- * 		5. steps
- * 			dtb 文件上面已经拷贝，重启开发板了;
- * 			5.1 编译 驱动程序;
- * 			5.2 .ko 文件拷贝到开发板上;
- * 			5.3 insmod .ko
- * 			5.4 按下开发板上的 key1, key2
- * 			5.5 执行 ./button_irq_test /dev/zlj_gpio_key
- * 				+ 5.4 步骤的时候，我们能看到 中断服务程序的输出:
+ *			---------------------------
+ *		5. 添加 drv_poll
+ *			+ 我们通常理解的中断过程，没有消息时，手动挂起线程;
+ *				但在 poll 机制中，挂起（即休眠）被内核封装在了 sys_poll 当中，我们只需要做两件事;
+ *					+ drv_poll 将任务放入到 wait_queue 当中，但线程此时并未休眠;
+ *					+ 返回是否有数据的状态;
+ *				drv_poll 是被调用的，在代码中，被别人调用，就得遵守一定的规范;
+ *				code:
+ *					static unsigned int gpio_key_drv_poll(struct file *fp, poll_table * wait) {
+ *						poll_wait(fp, &gpio_key_wait, wait);
+ *						return is_key_buf_empty() ? 0 : POLLIN | POLLRDNORM;
+ *					}
+ *					+ poll_wait 将当前线程加入到 gpio_key_wait 等待队列;
+ *						此时，只是加入到队列当中，线程还没有休眠;
+ *					+ return，是否有消息的状态;
+ * @steps:
+ * 		dtb 文件上面已经拷贝，重启开发板了;
+ * 		1. 编译 驱动程序;
+ * 		2. .ko 文件拷贝到开发板上;
+ * 		3. insmod .ko
+ * 		4. 按下开发板上的 key1, key2
+ * 		5. 执行 ./button_irq_test /dev/zlj_gpio_key
+ * 			+ 4 步骤的时候，我们能看到 中断服务程序的输出:
  * 					[14330.841750] key 189 val 0
  * 					[14331.017738] key 189 val 1
  * 					[14331.321100] key 189 val 0
  * 					[14331.513510] key 189 val 1
- * 				+ 执行测试程序的输出:
+ * 			+ 执行测试程序的输出:
  * 					get button : gpio 110 val 0
  * 					只显示了，最后一次得到的 val;
  * 					命名中断事件有 4 次，我们只得到了最后一次;
- * 					------------------------------------------
- * 				+ 中断程序执行时，就执行一次 put_key，每按一次按键，就会记录在 g_keys[] buffer 当中;
+ * 					>>> 后面一节会加上循环队列的方式，获取中断的按键值 <<<
+ * 			+ 中断程序执行时，就执行一次 put_key，每按一次按键，就会记录在 g_keys[] buffer 当中;
  * 					当应用程序循环读时，根据 is_key_buf_empty() 判断当前是否有数据，决定线程休不休眠;
  * 					有数据，就不休眠，一个 val 一个 val 传递到用户空间;
  * 		6. 查看中断统计和分配情况：cat /proc/interrupts
