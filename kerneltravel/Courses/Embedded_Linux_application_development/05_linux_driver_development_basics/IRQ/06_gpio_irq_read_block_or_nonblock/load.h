@@ -1,5 +1,5 @@
 /**
- * @brief: key button, request_irq with driver -- signal way to read; -- porting on 25/6/2025
+ * @brief: key button, request_irq with driver -- block or O_NONBLOCK to read; -- porting on 26/6/2025
  *
  * @chapter: Notion -- 
  * 				+ 【第五篇】嵌入式Linux驱动开发基础知识
@@ -154,7 +154,7 @@
  *				+ 否则（理论上不成立的概率很小），会再次睡眠;
  *			>>>>>>>>>>> end <<<<<<<<<<<
  *			---------------------------
- *		5. 添加 drv_poll
+ *		5. 添加 drv_poll --- 第五篇 - 第二十章 - 02_POLL机制
  *			+ 我们通常理解的中断过程，没有消息时，手动挂起线程;
  *				但在 poll 机制中，挂起（即休眠）被内核封装在了 sys_poll 当中，我们只需要做两件事;
  *					+ drv_poll 将任务放入到 wait_queue 当中，但线程此时并未休眠;
@@ -169,53 +169,38 @@
  *						此时，只是加入到队列当中，线程还没有休眠;
  *					+ return，是否有消息的状态;
  *					---------------------------
- *		6. 添加 drv_fasync
- *			code:
- *				+ drv 程序方面:
- *					static struct fasync_struct *button_fasync;
- *					static int gpio_key_drv_fasync(int fd, struct file *file, int on) {
- *						if (fasync_helper(fd, file, on, &button_fasync) >= 0)
- *							return 0;
- *						else
- *							return -EIO;
- *					}
- *					- on: 0 表示注销；1 表示添加；其他值系统内部使用
- *					- button_fasync：你定义在驱动中的 struct fasync_struct *，用于记录所有异步通知的进程
- *					| 当用户空间调用 fcntl(fd, F_SETFL, FASYNC) 时，内核就会调用驱动的 fasync 方法来注册或注销异步通知结构体（fasync_struct）。
- *					| 注册成功后，中断中调用 kill_fasync() 就可以发送 SIGIO 信号给用户进程。
- *
- *					+ 中断服务程序中，发送信号:
- *					static irqreturn_t gpio_key_irq_zlj(int irq, void* dev_id) {
- *						...
- *						kill_fasync(&button_fasync, SIGIO, POLL_IN);
- *						...
- *					}
- *					- &button_fasync: 指向 struct fasync_struct * 的指针，记录了要通知的用户进程列表
- *					- SIGIO: 要发送的信号编号（异步 IO 通常用 SIGIO）
- *					- POLL_IN: 通知事件类型，通常为 POLL_IN 表示“可读”事件（poll 中对应）
- *					| 通知用户空间进程：当前设备可读（或有事件发生），系统通过 SIGIO 信号发送给设置了 FASYNC 的进程。
- *				+ 用户空间测试程序:
- *					static void sig_func(int sig) {
- *						int val;
- *						read(fd, &val, sizeof(val));
- *						printf("get button : gpio %d val %d\n", val >> 8, val & (0x0011));
- *					}
- *					...
- *					signal(SIGIO, sig_func);
- *					fcntl(fd, F_SETOWN, getpid());
- *					int oflags = fcntl(fd, F_GETFL);
- *					fcntl(fd, F_SETFL, oflags | FASYNC);
- *					...
- *					+ read: 信号发生时，从驱动读取数据
- *					+ signal: 设置 SIGIO 信号的处理函数为 sig_func
- *						sig_func() 中不要写太复杂的逻辑，尽量只做简单处理（如 read() + 设置标志位），防止中断上下文中出现复杂行为。
- *					+ fcntl(fd, F_SETOWN, getpid()): 设置当前进程为“信号所有者”
- *						这是必须的，否则驱动无法确定发送 SIGIO 信号的目标进程。
- *					+ fcntl(fd, F_SETFL, oflags | FASYNC); 开启 FASYNC 模式
- *						使设备进入异步通知模式，内核会调用驱动的 .fasync() 方法。
- *						之后驱动中 kill_fasync() 会将信号发给当前进程。
- *					就完成，signal 异步通知;
- *
+ *		6. block or O_NONBLOCK to read --- 第五篇 - 第二十章 - 04_阻塞与非阻塞
+ *			阻塞与非阻塞的方式，可以在打开设备节点时，也可以在之后，进行模式的设置;
+ *				+ 打开设备节点时:
+ *					int fd = open(“/dev/xxx”, O_RDWR | O_NONBLOCK); // 非阻塞方式
+ *					int fd = open(“/dev/xxx”, O_RDWR ); // 阻塞方式
+ *				+ 在打开设备节点后:
+ *					int flags = fcntl(fd, F_GETFL);
+ *					fcntl(fd, F_SETFL, flags | O_NONBLOCK); // 非阻塞方式
+ *					fcntl(fd, F_SETFL, flags & ~O_NONBLOCK); // 阻塞方式
+ *			drv_read 中，也可以根据 file 中记录的 f_flags，来做判断，要不要采用 wait_queue 的方式;
+ *				ssize_t gpio_key_drv_read(struct file *file, char __user *buf, size_t size, loff_t *off) {
+ *					int err;
+ *					int key;
+ *					
+ *					if (is_key_buf_empty() && (file->f_flags & O_NONBLOCK))
+ *						return -EAGAIN;
+ *					wait_event_interruptible(gpio_key_wait, !is_key_buf_empty());
+ *					
+ *					key = get_key();
+ *					err = copy_to_user(buf, &key, sizeof(int));
+ *					return sizeof(int);
+ *				}
+ *				总结 drv_read 的效果:
+ *					+ 不管模式如何，此种写法，会直接 return;
+ *						如果在 while 中循环读，CPU 占用率会很高;
+ *					+ 如果是 O_NONBLOCK,
+ *						没数据，直接 return;
+ *						有数据，wait_event_interruptible 不会将当前进程加入 wait_queue; 然后将数据拷贝给用户;
+ *					+ 如果是默认的 block,
+ *						没数据，wait_event_interruptible 将当前进程加入 wait_queue，等待中断服务程序唤醒;
+ *						有数据，将数据拷贝给用户程序;
+ *							
  * @steps:
  * 		dtb 文件上面已经拷贝，重启开发板了;
  * 		1. 编译 驱动程序;
@@ -223,27 +208,38 @@
  * 		3. insmod .ko
  * 		4. 按下开发板上的 key1, key2
  * 		5. 执行 ./button_irq_test /dev/zlj_gpio_key
- * 			+ 4 步骤的时候，我们能看到 中断服务程序的输出:
- * 					[14330.841750] key 189 val 0
- * 					[14331.017738] key 189 val 1
- * 					[14331.321100] key 189 val 0
- * 					[14331.513510] key 189 val 1
  * 			+ 执行测试程序的输出:
- * 					get button : gpio 110 val 0
- * 					只显示了，最后一次得到的 val;
- * 					命名中断事件有 4 次，我们只得到了最后一次;
- * 					>>> 后面一节会加上循环队列的方式，获取中断的按键值 <<<
- * 			+ 中断程序执行时，就执行一次 put_key，每按一次按键，就会记录在 g_keys[] buffer 当中;
- * 					当应用程序循环读时，根据 is_key_buf_empty() 判断当前是否有数据，决定线程休不休眠;
- * 					有数据，就不休眠，一个 val 一个 val 传递到用户空间;
- * 			-----------------------------------------------------------
- * 			+ 异步通知: signal
- * 				+ 用户测试程序，在做自己内容的同时，中断发生，就能去读取引脚的状态;
- * 					[11626.711879] key 189 val 1
- * 					get button : gpio 110 val 0
- * 					gpio_irq_drv_read_signal --
- * 					+ 3 行中最后一行，就是测试程序做自己的输出;
- *					+ 第 2 行是测试程序中的信号处理函数中的输出;
- *					+ 第 1 行是驱动中断服务程序中的输出;
+ * 				[root@100ask:/mnt/05_linux_drivers_development_basics/IRQ/06_gpio_irq_drv_read_block_or_nonblock]# [ 7311.370534] key 189 val 0
+ * 				[ 7311.593993] key 189 val 1
+ * 				[ 7312.459808] key 189 val 0
+ * 				[ 7312.602250] key 189 val 1
+ *
+ * 				[root@100ask:/mnt/05_linux_drivers_development_basics/IRQ/06_gpio_irq_drv_read_block_or_nonblock]# ./button_irq_test /dev/zlj_gpio_key
+ * 				for-loop get button : gpio 110 val 1
+ * 				for-loop get button : gpio 110 val 0
+ * 				for-loop get button : gpio 110 val 1
+ * 				for-loop get button : gpio 110 val 0
+ * 				get button -1
+ * 				get button -1
+ * 				get button -1
+ * 				get button -1
+ * 				get button -1
+ * 				get button -1
+ *
+ * 				[ 7335.112057] key 189 val 0
+ * 				get button : gpio 110 val 1
+ * 				[ 7335.373006] key 189 val 1
+ * 				get button : gpio 110 val 0
+ * 				[ 7336.518178] key 189 val 0
+ * 				get button : gpio 110 val 1
+ * 				[ 7336.779676] key 189 val 1
+ * 				get button : gpio 110 val 0
+ * 			+ 分析:
+ * 				在插入驱动模块之后，先没有立即执行测试程序，按了两次按键，再执行测试程序;
+ * 				可以看到，缓存的循环队列中的数据，有被输出出来;
+ * 				十次之后，结束 O_NONBLOCK，修改成阻塞的模式, 改成了不限次数的 while 循环,
+ * 				但并没有将 else 分支内容输出出来,
+ * 				说明 阻塞模式 设置正确;
+ *
  * 		6. 查看中断统计和分配情况：cat /proc/interrupts
  */
