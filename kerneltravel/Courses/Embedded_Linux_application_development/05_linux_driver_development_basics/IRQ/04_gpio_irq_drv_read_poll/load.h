@@ -1,10 +1,10 @@
 /**
- * @brief: key button, request_irq with driver--read; -- porting on 23/6/2025
+ * @brief: key button, request_irq with driver -- poll way to read; -- porting on 23/6/2025
  *
  * @chapter: Notion -- 
  * 				+ 【第五篇】嵌入式Linux驱动开发基础知识
  * 					+ 【第二十章】驱动程序基石
- * 						+ 01_休眠与唤醒
+ * 						+ 02_POLL机制
  *
  * @descriptions:
  * 		1. dts 修改：

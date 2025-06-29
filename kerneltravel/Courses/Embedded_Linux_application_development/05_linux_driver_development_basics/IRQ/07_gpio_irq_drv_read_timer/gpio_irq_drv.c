@@ -126,7 +126,9 @@ static struct file_operations gpio_key_drv = {
 static irqreturn_t gpio_key_irq_zlj(int irq, void* dev_id) {
 
 	struct gpio_key* gkey = (struct gpio_key*) dev_id;
-	printk("%s key %d val %d irq happened\n", __FUNCTION__, irq, gpio_get_value(gkey->gpio));
+	//printk("%s key %d val %d irq happened\n", __FUNCTION__, irq, gpio_get_value(gkey->gpio));
+	
+	pr_info("%s key %d val %d irq happened\n", __FUNCTION__, irq, gpio_get_value(gkey->gpio));
 	mod_timer(&gkey->key_timer, jiffies + HZ / 50);
 	
 	return IRQ_HANDLED;
