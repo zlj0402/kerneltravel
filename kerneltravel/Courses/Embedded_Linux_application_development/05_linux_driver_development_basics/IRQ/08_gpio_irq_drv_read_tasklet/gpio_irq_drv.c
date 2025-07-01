@@ -26,6 +26,7 @@ struct gpio_key {
 	/* 定时器 */
 	struct timer_list key_timer;
 
+	/* tasklet */
 	struct tasklet_struct key_tasklet;
 };
 
