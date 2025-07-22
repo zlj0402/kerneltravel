@@ -1,0 +1,14 @@
+prefix=/home/zlj/zljgit/kerneltravel/Courses/Embedded_Linux_application_development/writing_APP_to_operate_hardware/FreeType/freetype-2.13.3/tmp
+exec_prefix=/home/zlj/zljgit/kerneltravel/Courses/Embedded_Linux_application_development/writing_APP_to_operate_hardware/FreeType/freetype-2.13.3/tmp
+libdir=/home/zlj/zljgit/kerneltravel/Courses/Embedded_Linux_application_development/writing_APP_to_operate_hardware/FreeType/freetype-2.13.3/tmp/lib
+includedir=/home/zlj/zljgit/kerneltravel/Courses/Embedded_Linux_application_development/writing_APP_to_operate_hardware/FreeType/freetype-2.13.3/tmp/include
+
+Name: FreeType 2
+URL: https://freetype.org
+Description: A free, high-quality, and portable font engine.
+Version: 26.2.20
+Requires: 
+Requires.private: zlib
+Libs: -L/home/zlj/zljgit/kerneltravel/Courses/Embedded_Linux_application_development/writing_APP_to_operate_hardware/FreeType/freetype-2.13.3/tmp/lib -lfreetype
+Libs.private: -lbz2
+Cflags: -I${includedir}/freetype2
