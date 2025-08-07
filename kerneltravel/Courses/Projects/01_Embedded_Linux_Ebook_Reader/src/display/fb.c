@@ -27,17 +27,6 @@ static int FBShowPixel(int iPenX, int iPenY, unsigned int dwColor);
 static int FBCleanScreen(unsigned int dwBackColor);
 
 /* 构造，设置，注册一个结构体 */
-typedef struct DispOpr {
-
-	char* name;
-	unsigned int uiXres;
-	unsigned int uiYres;
-	unsigned int uiBpp;
-	int (*DeviceInit)(void); 
-	int (*ShowPixel)(int iPenX, int iPenY, unsigned int);
-	int (*CleanScreen)(unsigned int dwBackColor);
-} T_DispOpr, *PT_DispPor;
-
 static T_DispOpr g_tFBDispOpr = {
 
 	.name        = "fb", 
