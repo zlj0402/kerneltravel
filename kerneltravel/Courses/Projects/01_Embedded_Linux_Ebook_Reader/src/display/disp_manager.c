@@ -1,15 +1,14 @@
-
 #include <config.h>
 #include <disp_manager.h>
 
 #include <string.h>
 
-static LIST_HEAD_INIT(g_tDispListHead);
+static LIST_HEAD(g_tDispOprHead);
 
 /**
  * @brief 注册一个显示操作结构体到全局显示操作链表中
  *
- * 将传入的显示操作结构体（Display Operator）添加到全局链表 g_tDispListHead 的尾部。
+ * 将传入的显示操作结构体（Display Operator）添加到全局链表 g_tDispOprHead 的尾部。
  * 如果传入的指针为 NULL，则注册失败。
  *
  * @param[in] ptDispOpr 指向待注册的显示操作结构体的指针
@@ -25,7 +24,7 @@ int RegisterDispOpr(PT_DispOpr ptDispOpr) {
 	if (!ptDispOpr)
 		return -1;
 
-	list_add_tail(&ptDispOpr->tList, &g_tDispListHead);
+	list_add_tail(&ptDispOpr->tList, &g_tDispOprHead);
 	
 	return 0;
 }
@@ -46,7 +45,7 @@ void ShowDispOpr(void) {
 	struct list_head *pos;
 	PT_DispOpr ptDispOpr;
 
-	list_for_each(pos, &g_tDispListHead) {
+	list_for_each(pos, &g_tDispOprHead) {
 
 		ptDispOpr = list_entry(pos, T_DispOpr, tList);
 		printf("%02d %s\n", i++, ptDispOpr->name);
@@ -72,7 +71,7 @@ PT_DispOpr GetDispOpr(char* pcName) {
 	struct list_head *pos;
 	PT_DispOpr ptDispOpr;
 
-	list_for_each(pos, &g_tDispListHead) {
+	list_for_each(pos, &g_tDispOprHead) {
 
 		ptDispOpr = list_entry(pos, T_DispOpr, tList);
 		if (strcmp(ptDispOpr->name, pcName) == 0)
