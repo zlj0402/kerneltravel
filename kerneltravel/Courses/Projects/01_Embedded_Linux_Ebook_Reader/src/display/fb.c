@@ -221,7 +221,8 @@ static int FBCleanScreen(unsigned int dwBackColor)
 
 int FBInit(void) 
 {
-	registerDispOpr(&g_tFBDispOpr);
+	INIT_LIST_HEAD(&g_tFBDispOpr->tList);
+	return registerDispOpr(&g_tFBDispOpr);
 }
 
 

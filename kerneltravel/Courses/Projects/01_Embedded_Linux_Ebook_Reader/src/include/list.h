@@ -102,4 +102,29 @@ static inline int list_is_head(const struct list_head *list, const struct list_h
 #define list_for_each(pos, head) \
 	for (pos = (head)->next; !list_is_head(pos, (head)); pos = pos->next)
 
+/*
+ * Delete a list entry by making the prev/next entries
+ * point to each other.
+ *
+ * This is only for internal list manipulation where we know
+ * the prev/next entries already!
+ */
+static inline void __list_del(list_t * prev, list_t * next)
+{
+	next->prev = prev;
+	prev->next = next;
+}
+
+/**
+ * list_del - deletes entry from list.
+ * @entry: the element to delete from the list.
+ * Note: list_empty on entry does not return true after this, the entry is in an undefined state.
+ */
+static inline void list_del(list_t *entry)
+{
+	__list_del(entry->prev, entry->next);
+	entry->next = (void *) 0;
+	entry->prev = (void *) 0;
+}
+
 #endif 	//ZLJ_LINUX_LIST_H

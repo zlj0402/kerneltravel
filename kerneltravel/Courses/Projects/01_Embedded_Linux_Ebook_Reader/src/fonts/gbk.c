@@ -67,8 +67,8 @@ static int GBKFontInit(char *pcFontFile, unsigned int dwFontSize) {
 	DBG_PRINTF("g_pucHZKMem: %p, g_pucHZKMemEnd: %p\n", (void*)g_pucHZKMem, (void*)g_pucHZKMemEnd);
 	DBG_PRINTF("%s's size: %d bytes (%.3g KB), last access time: %s, last modified time: %s\n", 
 		pcFontFile, tHZKStat.st_size, tHZKStat.st_size / 1024.0, 
-		format_time_custom(tHZKStat.st_atime, time_str, TIMESTRLEN),
-		format_time_custom(tHZKStat.st_mtime, time_str, TIMESTRLEN));
+		FormatTimeCustom(tHZKStat.st_atime, time_str, TIMESTRLEN),
+		FormatTimeCustom(tHZKStat.st_mtime, time_str, TIMESTRLEN));
 }
 
 /**
@@ -93,7 +93,7 @@ static int GBKGetFontBitmap(unsigned int dwCode, PT_FontBitmap ptFontBitmap) {
 	int iPenX = ptFontBitmap->iCurOriginX;
 	int iPenY = ptFontBitmap->iCurOriginY;
 
-	DBG_PRINTF("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+	DBG_PRINTF_MARK;
 
 	if (dwCode & 0xffff0000) {
 		
