@@ -2,6 +2,7 @@
 #define ENCODING_MANAGER_H
 
 #include <list.h>
+#include <fonts_manager.h>
 
 typedef struct EncodingOpr {
 
@@ -12,5 +13,12 @@ typedef struct EncodingOpr {
 	int (*GetCodeFrmBuf)(unsigned char *pucBufStart, unsigned char *pucBufEnd, unsigned int *pdwCode);
 	struct list_head tList;	
 } T_EncodingOpr, *PT_EncodingOpr;
+
+int RegisterEncodingOpr(PT_EncodingOpr ptEncodingOpr);
+void ShowEncodingOpr(void);
+PT_EncodingOpr SelectEncodingOprForFile(unsigned char *pucFileBufHead);
+int AddFontOprForEncoding(PT_EncodingOpr ptEncodngOpr, PT_FontOpr ptFontOpr);
+int DelFontOprForEncoding(PT_EncodingOpr ptEncodingOpr, PT_FontOpr ptFontOpr);
+int EncodingInit(void);
 
 #endif 	//ENCODING_MANAGER_H

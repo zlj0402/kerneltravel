@@ -38,6 +38,16 @@ typedef struct list_head list_t;
  */
 #define list_entry(ptr, type, member) \
 	container_of(ptr, type, member)
+
+/**
+ * list_empty - tests whether a list is empty
+ * @head: the list to test.
+ */
+static inline int list_empty(list_t *head)
+{
+	return head->next == head;
+}
+
 /*
 #define list_entry(ptr, type, member) \
 	((type *)((char *)(ptr)-(unsigned long)(&((type *)0)->member)))
@@ -82,6 +92,16 @@ static inline void list_add_tail(list_t *new, list_t *head)
 {
 	__list_add(new, head->prev, head);
 	// 对于 __list_add 来看，不分头插尾插，new 都是要插在，第二个参数和第三个参数之间
+}
+
+/**
+ * list_end - test whether @prev is the last
+ * @prev: the entry to test
+ * @head: the head of the list
+ */
+static inline int list_end(list_t *prev, list_t *head) 
+{
+	return prev->next == head;	
 }
 
 /**

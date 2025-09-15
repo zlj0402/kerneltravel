@@ -1,11 +1,26 @@
 #include <fonts_manager.h>
+#include <config.h>
 
 // fstat
 #include <sys/stat.h>
+// open
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+// mmap
+#include <sys/mman.h>
+// close
+#include <unistd.h>
+
+#define TIMESTRLEN 64
+
 
 static int 			  g_iHZKFd;
 static unsigned char *g_pucHZKMem;
 static unsigned char *g_pucHZKMemEnd;
+
+static char acTimeStr[TIMESTRLEN];
+
 
 static int GBKFontInit(char *pcFontFile, unsigned int dwFontSize);
 
@@ -66,9 +81,11 @@ static int GBKFontInit(char *pcFontFile, unsigned int dwFontSize) {
 
 	DBG_PRINTF("g_pucHZKMem: %p, g_pucHZKMemEnd: %p\n", (void*)g_pucHZKMem, (void*)g_pucHZKMemEnd);
 	DBG_PRINTF("%s's size: %d bytes (%.3g KB), last access time: %s, last modified time: %s\n", 
-		pcFontFile, tHZKStat.st_size, tHZKStat.st_size / 1024.0, 
-		FormatTimeCustom(tHZKStat.st_atime, time_str, TIMESTRLEN),
-		FormatTimeCustom(tHZKStat.st_mtime, time_str, TIMESTRLEN));
+		pcFontFile, (int)tHZKStat.st_size, tHZKStat.st_size / 1024.0, 
+		FormatTimeCustom(tHZKStat.st_atime, acTimeStr, TIMESTRLEN),
+		FormatTimeCustom(tHZKStat.st_mtime, acTimeStr, TIMESTRLEN));
+
+	return 0;
 }
 
 /**
@@ -118,10 +135,10 @@ static int GBKGetFontBitmap(unsigned int dwCode, PT_FontBitmap ptFontBitmap) {
 	ptFontBitmap->iPitch    = 2;
 	ptFontBitmap->pucBuffer = g_pucHZKMem + (iArea * 94 + iWhere)*32;
 
-	if (ptFontBitmap->pucBuffer >= g_pucHZKMemEnd)
-	{
-		DBG_PRINTF("converted dwCode 0x%x is more than g_pucHZKMem range: [0x%x ~ 0x%x]\n", 
-									ptFontBitmap->pucBuffer, g_pucHZKMem, g_pucHZKMemEnd);
+	if (ptFontBitmap->pucBuffer >= g_pucHZKMemEnd) {
+		
+		DBG_PRINTF("converted dwCode %p is more than g_pucHZKMem range: [%p ~ %p]\n", 
+									(void*)ptFontBitmap->pucBuffer, (void*)g_pucHZKMem, (void*)g_pucHZKMemEnd);
 		return -1;
 	}
 

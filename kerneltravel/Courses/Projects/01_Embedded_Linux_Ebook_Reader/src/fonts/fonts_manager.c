@@ -33,7 +33,7 @@ void ShowFontOpr(void) {
 
 	int i = 0;
 	struct list_head *pos;
-	Pt_FontOpr ptFontOpr;
+	PT_FontOpr ptFontOpr;
 
 	list_for_each(pos, &g_tFontOprHead) {
 
@@ -54,7 +54,7 @@ void ShowFontOpr(void) {
 PT_FontOpr GetFontOpr(char *pcName) {
 
 	struct list_head *pos;
-	Pt_FontOpr ptFontOpr;
+	PT_FontOpr ptFontOpr;
 
 	list_for_each(pos, &g_tFontOprHead) {
 
@@ -69,19 +69,36 @@ PT_FontOpr GetFontOpr(char *pcName) {
 /**
  * @brief 初始化字体系统
  *
- * 调用 FreeType 字体引擎的初始化函数。
+ * 依次初始化 ASCII 字体、GBK 字体和 FreeType 字体引擎。
+ * 如果任一初始化过程失败，函数会输出错误信息并返回 -1。
+ * 所有初始化成功后，返回 0。
  *
- * @retval 0 初始化成功
- * @retval -1 初始化失败
+ * @return int
+ * @retval  0 初始化成功
+ * @retval -1 初始化失败（任意子系统初始化错误）
  */
 int FontsInit(void) {
 
 	int error;
 
+	error = AsciiInit();
+	if (error) {
+
+		DBG_PRINTF("ASCIIInit error!\n");
+		return -1;
+	}
+
+	error = GBKInit();
+	if (error) {
+
+		DBG_PRINTF("GBKInit error!\n");
+		return -1;
+	}
+
 	error = FreetypeInit();
 	if (error) {
 		
-		DBG_PRINTF("FreetypeInit failed: %d!\n", error);
+		DBG_PRINTF("FreetypeInit error!\n");
 		return -1;
 	}
 

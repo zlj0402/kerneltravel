@@ -1,9 +1,19 @@
 #include <fonts_manager.h>
+#include <config.h>
 
 // fstat
 #include <sys/stat.h>
+// open
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+// mmap
+#include <sys/mman.h>
 // freetype
 #include <ft2build.h>
+// close
+#include <unistd.h>
+
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H 
 #include FT_GLYPH_H
@@ -11,8 +21,6 @@
 static FT_Library    g_tLibrary;
 static FT_Face       g_tFace;
 static FT_GlyphSlot  g_tSlot;
-
-static FT_Vector pen;
 
 static int            g_iTTFFd;
 static unsigned char* g_pucTTFMem;
@@ -53,8 +61,8 @@ static void PrintFontInfo(void) {
 	for (int i = 0; i < g_tFace->num_fixed_sizes; i++) {
 		
 		FT_Bitmap_Size size = g_tFace->available_sizes[i];
-		printf("Strike %d: height=%d, width=%d, size=%ld, x_ppem=%d, y_ppem=%d\n",
-			   i, size.height, size.width, size.size, size.x_ppem, size.y_ppem);
+		printf("Strike %d: height=%d, width=%d, size=%d, x_ppem=%d, y_ppem=%d\n",
+			   i, (int)size.height, (int)size.width, (int)size.size, (int)size.x_ppem, (int)size.y_ppem);
 	}
 	if (g_tFace->num_fixed_sizes == 0) {
 
@@ -131,7 +139,7 @@ static int FreetypeFontInit(char *pcFontFile, unsigned int dwFontSize)
 
 	// 4. set size
 	unsigned int uiTmpFontSize = dwFontSize;
-	while (error = FT_Set_Pixel_Sizes(g_tFace, uiTmpFontSize, 0)) {
+	while ((error = FT_Set_Pixel_Sizes(g_tFace, uiTmpFontSize, 0))) {
 			
 		DBG_PRINTF("Failed to set pixel sizes: %d\n", error);
 		
@@ -184,7 +192,7 @@ static int FreetypeGetFontBitmap(unsigned int dwCode, PT_FontBitmap ptFontBitmap
 	ptFontBitmap->iYMax        = ptFontBitmap->iYTop + g_tSlot->bitmap.rows;
 	ptFontBitmap->iBpp         = 1;
 	ptFontBitmap->iPitch       = g_tSlot->bitmap.pitch;
-	ptFontBitmap->iNextOriginX = iPenX + g_tSlot->advance.x >> 6;
+	ptFontBitmap->iNextOriginX = iPenX + (g_tSlot->advance.x >> 6);
 	ptFontBitmap->iNextOriginY = iPenY;
 	ptFontBitmap->pucBuffer    = g_tSlot->bitmap.buffer;
 

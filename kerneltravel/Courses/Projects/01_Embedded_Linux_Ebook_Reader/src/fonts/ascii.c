@@ -91,7 +91,7 @@ static int AsciiFontInit(char *pcFontFile, unsigned int dwFontSize) {
  * @retval 0 Success.
  * @retval -1 Failure.
  */
-int GBKInit(void) {
+int AsciiInit(void) {
 	return RegisterFontOpr(&g_tAsciiFontOpr);
 }
 

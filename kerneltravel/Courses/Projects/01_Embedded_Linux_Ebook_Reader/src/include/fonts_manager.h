@@ -30,6 +30,8 @@ void ShowFontOpr(void);
 PT_FontOpr GetFontOpr(char *pcName);
 int FontsInit(void);
 
+int AsciiInit(void);
+int GBKInit(void);
 int FreetypeInit(void);
 
 #endif 	//FONTS_MANAGER_H

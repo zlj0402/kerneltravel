@@ -1,5 +1,3 @@
-#include <config.h>
-
 // printf / perror
 #include <stdio.h>
 // open
@@ -12,12 +10,21 @@
 #include <linux/fb.h>
 // memset
 #include <string.h>
+// close
+#include <unistd.h>
+// struct fb_var_resolution
+#include <linux/fb.h>
+// mmap
+#include <sys/mman.h>
+
+#include <disp_manager.h>
+#include <config.h>
 
 
-static int g_iFBFd;
+static int g_iFdFB;
 static unsigned char* g_pucFbMem;
 
-static struct fb_var_resolution g_tVar;
+static struct fb_var_screeninfo g_tVar;
 static unsigned int g_uiPixelWidth;
 static unsigned int g_uiLineWidth;
 static unsigned int g_uiScreenSize;
@@ -51,9 +58,9 @@ static T_DispOpr g_tFBDispOpr = {
 static int FBDeviceInit(void)
 {
 	// 1. 打开帧缓冲设备 -- open
-	g_iFBFd = open(FB_DEV_NAME, O_RDWR);
+	g_iFdFB = open(FB_DEV_NAME, O_RDWR);
 	
-	if (g_iFBFd < 0) {
+	if (g_iFdFB < 0) {
 		
 		DBG_PRINTF("can not open %s\n", FB_DEV_NAME);
 		return -1;
@@ -64,10 +71,10 @@ static int FBDeviceInit(void)
 
 	// 2. 得到屏幕信息 -- ioctl
 	// Usually,  on  success  zero is returned.
-	if (ioctl(g_iFBFd, FBIOGET_VSCREENINFO, &g_tVar)) {
+	if (ioctl(g_iFdFB, FBIOGET_VSCREENINFO, &g_tVar)) {
 
 		perror("Error reading screen resolution variable information.\n");
-		close(g_iFBFd);
+		close(g_iFdFB);
 		return -1;
 	}
 	
@@ -84,11 +91,11 @@ static int FBDeviceInit(void)
 	DBG_PRINTF("one frame takes %d bytes == %d KB == %.3g MB.\n\n", g_uiScreenSize, g_uiScreenSize / 1024, g_uiScreenSize * 1.0 / 1024 / 1024);
 
 	// 3. mmap 来获取 Framebuffer 在内核中映射地址（返回的是虚拟地址），我们来直接读写;
- 	g_pucFbMem = mmap(NULL, screen_st, PROT_READ | PROT_WRITE, MAP_SHARED, g_iFBFd, 0);
-	if ((void*)p_ucFbMem == MAP_FAILED) {	// MAP_FAILED -> (void*)-1
+ 	g_pucFbMem = mmap(NULL, g_uiScreenSize, PROT_READ | PROT_WRITE, MAP_SHARED, g_iFdFB, 0);
+	if ((void*)g_pucFbMem == MAP_FAILED) {	// MAP_FAILED -> (void*)-1
 		
 		perror("Framebuffer mmap error happened.\n");
-		close(g_iFBFd);
+		close(g_iFdFB);
 		return -1;
 	}
 
@@ -221,8 +228,8 @@ static int FBCleanScreen(unsigned int dwBackColor)
 
 int FBInit(void) 
 {
-	INIT_LIST_HEAD(&g_tFBDispOpr->tList);
-	return registerDispOpr(&g_tFBDispOpr);
+	INIT_LIST_HEAD(&g_tFBDispOpr.tList);
+	return RegisterDispOpr(&g_tFBDispOpr);
 }
 
 
