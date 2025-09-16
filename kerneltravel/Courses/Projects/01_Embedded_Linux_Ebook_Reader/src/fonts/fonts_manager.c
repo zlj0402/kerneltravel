@@ -1,4 +1,5 @@
 #include <fonts_manager.h>
+#include <config.h>
 
 #include <stdio.h>
 #include <string.h>

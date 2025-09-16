@@ -1,4 +1,5 @@
 #include <fonts_manager.h>
+#include <config.h>
 
 #define FONTDATAMAX 4096
 

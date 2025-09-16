@@ -23,6 +23,7 @@ OBJS := main.o \
 			fonts/freetype.o              \
 			fonts/fonts_manager.o		  \
 			draw/draw.o                   \
+			config/config.o
 
 all: $(OBJS)
 	$(CC) $(LDFLAGS) -o show_file $^

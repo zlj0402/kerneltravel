@@ -1,3 +1,4 @@
+// fstat open
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -5,16 +6,18 @@
 #include <stdbool.h>
 // strcmp
 #include <string.h>
+// open fstat
+#include <fcntl.h>
+// mmap
+#include <sys/mman.h>
 
 #include <config.h>
+#include <list.h>
+#include <encoding_manager.h>
+#include <disp_manager.h>
+#include <fonts_manager.h>
+#include <draw.h>
 
-typedef struct PageDesc {
-
-	int iPage;
-	unsigned char *pucLcdFirstPosAtFile;
-	unsigned char *pucLcdNextPageFirstPosAtFile;
-	struct list_head tList;
-} T_PageDesc, *PT_PageDesc;
 
 static int g_iFdTextFile;
 static unsigned char *g_pucTextFileMem;
@@ -31,7 +34,6 @@ static PT_DispOpr g_ptDispOpr;
 
 static LIST_HEAD(g_tPagesHead);
 static struct list_head *g_ptCurPage = &g_tPagesHead;
-//static PT_PageDesc g_ptCurPage = g_tPagesHead->next;
 
 /**
  * @brief   打开一个文本文件，并建立内存映射，检测其编码格式
@@ -113,7 +115,7 @@ int SetTextDetail(char *pcHZKFile, char *pcFileFreetype, unsigned int dwFontSize
 		 * 所以，只要有一个 FontInit 成功，SetTextDetail 最终就返回成功;
 		 * 且保留成功注册的 FontOpr，否则在该 EncodingOpr 的字体支持链表中删除该 FontOpr;
 		 */
-		if (error = 0) {
+		if (error == 0) {
 			iRet = 0;
 		}
 		else {
@@ -138,7 +140,7 @@ int SelectAndInitDisplay(char *pcName) {
 	return error;
 }
 
-inline int IncLcdY(int iY) {
+static inline int IncLcdY(int iY) {
 
 	if (iY + g_dwFontSize < g_ptDispOpr->uiYres)
 		return iY + g_dwFontSize;
@@ -146,7 +148,7 @@ inline int IncLcdY(int iY) {
 		return 0;
 }
 
-int RelocateFontPos(PT_FontBitmap ptFontBitmap)
+static int RelocateFontPos(PT_FontBitmap ptFontBitmap)
 {
 	int iLcdY;
 	int iDeltaX;
@@ -193,7 +195,7 @@ int RelocateFontPos(PT_FontBitmap ptFontBitmap)
 	return 0;
 }
 
-int ShowOneFont(PT_FontBitmap ptFontBitmap)
+static int ShowOneFont(PT_FontBitmap ptFontBitmap)
 {
 	int x;
 	int y;
@@ -306,11 +308,11 @@ int ShowOnePage(unsigned char *pucTextFileMemCurPos) {
 
 		DBG_PRINTF("dwCode = 0x%x\n", dwCode);
 
-		list_for_each(ptPos, &g_ptEncodingOprForFile.tFontOprSupportedList) {
+		list_for_each(ptPos, &g_ptEncodingOprForFile->tFontOprSupportedList) {
 
 			ptFontOpr = list_entry(ptPos, T_FontOpr, tList);
 			error = ptFontOpr->GetFontBitmap(dwCode, &tFontBitmap);
-			DBG_PRINTF("%s %s %d, ptFontOpr->name = %s, %d\n", __file__, __func__, __line__, ptFontOpr->name, error);
+			DBG_PRINTF("%s %s %d, ptFontOpr->name = %s, %d\n", __FILE__, __func__, __LINE__, ptFontOpr->name, error);
 
 			if (error != 0)
 				continue;
@@ -354,17 +356,17 @@ int ShowNextPage(void) {
 	//pucTextFileMemCurPos = g_ptCurPage ?
 	//			g_ptCurPage->pucLcdNextPageFirstPosAtFile : g_pucLcdFirstPosAtFile;
 	// g_ptCurPage 不是 list head 头结点时 or 不是链表的最后一页，取其下一个
-	pucTextFileMemCurPos = list_end(g_ptCurPage, &g_ptPages) ? g_pucLcdFirstPosAtFile :
+	pucTextFileMemCurPos = list_end(g_ptCurPage, &g_tPagesHead) ? g_pucLcdFirstPosAtFile :
 							list_entry(g_ptCurPage, T_PageDesc, tList)->pucLcdNextPageFirstPosAtFile;
 	
 	error = ShowOnePage(pucTextFileMemCurPos);
-	DBG_PRINTF("%s %d, %d\n", __func__, __line__, error);
+	DBG_PRINTF("%s %d, %d\n", __func__, __LINE__, error);
 
-	if (error = 0) {
+	if (error == 0) {
 
 		/* 拥有下一个页面的话，就返回，因为可能是从旧页面往后，重新翻页 */
-		if (list_end(g_ptCurPage, &g_ptPages) && 
-			list_is_head(g_ptCurPage, &g_ptPages)) {
+		if (list_end(g_ptCurPage, &g_tPagesHead) && 
+			list_is_head(g_ptCurPage, &g_tPagesHead)) {
 
 			g_ptCurPage = g_ptCurPage->next;
 			return 0;
@@ -377,10 +379,10 @@ int ShowNextPage(void) {
 			ptPage->pucLcdFirstPosAtFile = pucTextFileMemCurPos;
 			ptPage->pucLcdNextPageFirstPosAtFile = g_pucLcdNextPosAtFile;
 			// 插入到页面的链表当中
-			list_add_tail(ptPage, g_ptPages);
+			list_add_tail(&ptPage->tList, &g_tPagesHead);
 			// 当前游标指向 malloc 出来的新页面，也即当前页面
 			g_ptCurPage = g_ptCurPage->next;
-			DBG_PRINTF("%s %d, pos = 0x%x\n", __func__, __line__, ptPage->pucLcdFirstPosAtFile);
+			DBG_PRINTF("%s %d, pos = %p\n", __func__, __LINE__, &ptPage->pucLcdFirstPosAtFile);
 			return 0;
 		}
 		else 
@@ -399,12 +401,12 @@ int ShowPrePage(void) {
 	// g_ptCurPage 本身不为 head，及 g_ptCurPage->prev 也不为 head，则
 
 	if (list_is_head(g_ptCurPage, &g_tPagesHead) || 
-			list_is_head(g_ptCurPage->prev, g_tPagesHead)) {
+			list_is_head(g_ptCurPage->prev, &g_tPagesHead)) {
 		return -1;
 	}
 
-	PT_PageDesc ptPrePage = list_entry(g_ptCurPage->prev, PT_PageDesc, tList);
-	DBG_PRINTF("%s %d, pos = 0x%x\n", __func__, __line__, ptPrePage->pucLcdFirstPosAtFile);
+	PT_PageDesc ptPrePage = list_entry(g_ptCurPage->prev, T_PageDesc, tList);
+	DBG_PRINTF("%s %d, pos = %p\n", __func__, __LINE__, ptPrePage->pucLcdFirstPosAtFile);
 	error = ShowOnePage(ptPrePage->pucLcdFirstPosAtFile);
 
 	if (error == 0) {

@@ -21,4 +21,10 @@ int AddFontOprForEncoding(PT_EncodingOpr ptEncodngOpr, PT_FontOpr ptFontOpr);
 int DelFontOprForEncoding(PT_EncodingOpr ptEncodingOpr, PT_FontOpr ptFontOpr);
 int EncodingInit(void);
 
+int AsciiEncodingInit();
+int Utf16leEncodingInit();
+int Utf16beEncodingInit();
+int Utf8EncodingInit();
+
+
 #endif 	//ENCODING_MANAGER_H

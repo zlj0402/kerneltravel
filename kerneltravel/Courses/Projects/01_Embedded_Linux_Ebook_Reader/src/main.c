@@ -9,6 +9,7 @@
 // strtoul
 #include <stdlib.h>
 
+#include <draw.h>
 #include <disp_manager.h>
 #include <fonts_manager.h>
 #include <encoding_manager.h>
@@ -154,7 +155,7 @@ int main(int argc, char* argv[]) {
 	while (1) {
 
 		do {
-			cOpr = getChar();
+			cOpr = getchar();
 		} while ((cOpr != 'n') && (cOpr != 'u') && (cOpr != 'q'));
 
 		if (cOpr == 'n') {
