@@ -12,7 +12,6 @@ static int AsciiFontInit(char *pcFontFile, unsigned int dwFontSize);
 /* 分配、设置、注册      T_FontOpr */
 static T_FontOpr g_tAsciiFontOpr = {
 
-
 	.name          = "ascii",
 	.FontInit      = AsciiFontInit,
 	.GetFontBitmap = AsciiGetFontBitmap,
