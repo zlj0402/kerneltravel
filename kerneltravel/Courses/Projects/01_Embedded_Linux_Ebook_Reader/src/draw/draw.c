@@ -360,7 +360,7 @@ int ShowNextPage(void) {
 							list_entry(g_ptCurPage, T_PageDesc, tList)->pucLcdNextPageFirstPosAtFile;
 	
 	error = ShowOnePage(pucTextFileMemCurPos);
-	DBG_PRINTF("%s %d, %d\n", __func__, __LINE__, error);
+	DBG_PRINTF("%s %s %d, %d\n", __FILE__, __func__, __LINE__, error);
 
 	if (error == 0) {
 

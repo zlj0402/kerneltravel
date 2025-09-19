@@ -27,7 +27,7 @@ static T_EncodingOpr g_tUtf16leEncodingOpr = {
  * - 0 : 文件不是 UTF-16 LE 编码
  */
 static int IsUtf16leCoding(unsigned char *pucBufHead) {
-	return GetFileCoding(pucBufHead) == UTF16_LE_ENCODING ? 1 : 0;
+	return GetFileCoding(pucBufHead) == UTF16_LE_ENCODING;
 }
 
 /**
@@ -68,9 +68,9 @@ static int Utf16leGetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBu
  * - 0   成功
  * - <0  注册失败
  */
-// 既然只是编码，会什么不能挂在 GBK 字体下面?
 int Utf16leEncodingInit(void) {
 
+	InitFontSupportedListHead(&g_tUtf16leEncodingOpr);
 	AddFontOprForEncoding(&g_tUtf16leEncodingOpr, GetFontOpr(FREETYPE_FONT));
 	AddFontOprForEncoding(&g_tUtf16leEncodingOpr, GetFontOpr(ASCII_FONT));
 

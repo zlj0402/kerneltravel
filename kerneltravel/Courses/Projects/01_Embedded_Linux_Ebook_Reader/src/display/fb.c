@@ -55,8 +55,8 @@ static T_DispOpr g_tFBDispOpr = {
  * @return int 
  *         成功返回 0，失败返回 -1。
  */
-static int FBDeviceInit(void)
-{
+static int FBDeviceInit(void) {
+
 	// 1. 打开帧缓冲设备 -- open
 	g_iFdFB = open(FB_DEV_NAME, O_RDWR);
 	
@@ -100,6 +100,8 @@ static int FBDeviceInit(void)
 	}
 
 	DBG_PRINTF("g_pucFbMem: %p\n", (void*)g_pucFbMem);
+
+	return 0;
 }
 
 /**
@@ -226,9 +228,7 @@ static int FBCleanScreen(unsigned int dwBackColor)
 	return 0;
 }
 
-int FBInit(void) 
-{
-	INIT_LIST_HEAD(&g_tFBDispOpr.tList);
+int FBInit(void)   {
 	return RegisterDispOpr(&g_tFBDispOpr);
 }
 

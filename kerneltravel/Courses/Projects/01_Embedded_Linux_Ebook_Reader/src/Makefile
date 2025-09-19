@@ -1,6 +1,6 @@
 CROSSCOMPILE := arm-linux-gnueabihf-
 
-CFLAGS 	:= -Wall -O2 -c
+CFLAGS 	:= -Wall -O2 -g -c
 CFLAGS  += -I$(PWD)/include 
 
 # for 100ask imx6ull

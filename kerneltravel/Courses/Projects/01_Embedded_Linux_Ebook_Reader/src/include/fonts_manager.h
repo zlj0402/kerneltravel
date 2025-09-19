@@ -14,7 +14,7 @@ typedef struct FontBitMap {
 	int iCurOriginY;
 	int iNextOriginX;
 	int iNextOriginY;
-	unsigned char *pucBuffer;
+	const unsigned char *pucBuffer;
 } T_FontBitmap, *PT_FontBitmap;
 
 typedef struct FontOpr {

@@ -28,7 +28,7 @@ static T_EncodingOpr g_tUtf8EncodingOpr = {
  * - 0 : 文件不是 UTF-8 编码
  */
 static int IsUtf8Coding(unsigned char *pucBufHead) {
-	return GetFileCoding(pucBufHead) == UTF8_ENCODING ? 1 : 0;
+	return GetFileCoding(pucBufHead) == UTF8_ENCODING;
 }
 
 /**
@@ -133,9 +133,9 @@ static int Utf8GetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBufEn
  * - 0   成功
  * - <0  注册失败
  */
-// 既然只是编码，会什么不能挂在 GBK 字体下面?
 int Utf8EncodingInit(void) {
 
+	InitFontSupportedListHead(&g_tUtf8EncodingOpr);
 	AddFontOprForEncoding(&g_tUtf8EncodingOpr, GetFontOpr(FREETYPE_FONT));
 	AddFontOprForEncoding(&g_tUtf8EncodingOpr, GetFontOpr(ASCII_FONT));
 

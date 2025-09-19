@@ -30,7 +30,7 @@ static int GBKFontInit(char *pcFontFile, unsigned int dwFontSize);
 /* 分配、设置、注册      T_FontOpr */
 static T_FontOpr g_tGBKFontOpr = {
 
-	.name          = "gbk",
+	.name          = GBK_FONT,
 	.FontInit      = GBKFontInit,
 	.GetFontBitmap = GBKGetFontBitmap,
 };

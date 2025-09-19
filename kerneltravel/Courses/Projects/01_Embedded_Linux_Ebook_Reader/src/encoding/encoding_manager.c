@@ -1,5 +1,6 @@
 #include <encoding_manager.h>
 #include <config.h>
+#include <list.h>
 
 // printf
 #include <stdio.h>
@@ -69,8 +70,11 @@ PT_EncodingOpr SelectEncodingOprForFile(unsigned char *pucFileBufHead) {
 	list_for_each(pos, &g_tEncodingOprHead) {
 
 		ptEncodingOpr = list_entry(pos, T_EncodingOpr, tList);
-		if (ptEncodingOpr->IsSupport(pucFileBufHead))
+		if (ptEncodingOpr->IsSupport(pucFileBufHead)) {
+
+			DBG_PRINTF("%s encoding is selected.\n", ptEncodingOpr->name);
 			return ptEncodingOpr;
+		}
 	}
 
 	return NULL;
@@ -94,7 +98,7 @@ int AddFontOprForEncoding(PT_EncodingOpr ptEncodngOpr, PT_FontOpr ptFontOpr) {
 
 	PT_FontOpr ptFontOprCpy;
 
-	ptFontOprCpy = malloc(sizeof(PT_FontOpr));
+	ptFontOprCpy = malloc(sizeof(T_FontOpr));
 	if (!ptFontOprCpy) {
 
 		DBG_PRINTF("%s %s %d malloc(sizeof(PT_FontOpr) error\n", __FILE__, __func__, __LINE__);

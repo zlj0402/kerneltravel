@@ -33,7 +33,7 @@ static int FreetypeGetFontBitmap(unsigned int dwCode, PT_FontBitmap ptFontBitmap
 /* 分配、设置、注册      T_FontOpr */
 static T_FontOpr g_tFreetypeFontOpr = {
 
-	.name          = "freetype",
+	.name          = FREETYPE_FONT,
 	.FontInit      = FreetypeFontInit,
 	.GetFontBitmap = FreetypeGetFontBitmap,
 };

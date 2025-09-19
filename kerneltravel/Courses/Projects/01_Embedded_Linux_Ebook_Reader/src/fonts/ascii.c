@@ -12,7 +12,7 @@ static int AsciiFontInit(char *pcFontFile, unsigned int dwFontSize);
 /* 分配、设置、注册      T_FontOpr */
 static T_FontOpr g_tAsciiFontOpr = {
 
-	.name          = "ascii",
+	.name          = ASCII_FONT,
 	.FontInit      = AsciiFontInit,
 	.GetFontBitmap = AsciiGetFontBitmap,
 };
@@ -73,8 +73,8 @@ static int AsciiFontInit(char *pcFontFile, unsigned int dwFontSize) {
 	ptFontBitmap->iYMax     = iPenY;
 	ptFontBitmap->iBpp      = 1;
 	ptFontBitmap->iPitch    = 1;
-	// ptFontBitmap->pucBuffer = fontdata_8x16 + dwCode * 16;
-	ptFontBitmap->pucBuffer = fontdata_8x16[dwCode * 16];	
+	ptFontBitmap->pucBuffer = fontdata_8x16 + dwCode * 16;
+	// ptFontBitmap->pucBuffer = &fontdata_8x16[dwCode * 16];	
 
 	ptFontBitmap->iNextOriginX = iPenX + 16;
 	ptFontBitmap->iNextOriginY = iPenY;

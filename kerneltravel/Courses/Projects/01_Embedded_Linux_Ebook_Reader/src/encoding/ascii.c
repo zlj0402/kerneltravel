@@ -8,7 +8,7 @@ static int AsciiGetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBufE
 
 static T_EncodingOpr g_tAsciiEncodingOpr = {
 
-	.name          = "ascii",
+	.name          = ASCII,
 	.iHeadLen      = 0,
 	.IsSupport     = IsAsciiCoding,
 	.GetCodeFrmBuf = AsciiGetCodeFrmBuf,
@@ -28,7 +28,7 @@ static T_EncodingOpr g_tAsciiEncodingOpr = {
  * - ASCII_ENCODING     如果未检测到 BOM，默认认为是 ASCII
  */
 static int IsAsciiCoding(unsigned char *pucBufHead) {
-	return GetFileCoding(pucBufHead);
+	return GetFileCoding(pucBufHead) == ASCII_ENCODING;
 }
 
 /**
@@ -95,11 +95,11 @@ static int AsciiGetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBufE
  */
 int AsciiEncodingInit(void) {
 
+	InitFontSupportedListHead(&g_tAsciiEncodingOpr);
 	AddFontOprForEncoding(&g_tAsciiEncodingOpr, GetFontOpr(FREETYPE_FONT));
 	AddFontOprForEncoding(&g_tAsciiEncodingOpr, GetFontOpr(ASCII_FONT));
 	AddFontOprForEncoding(&g_tAsciiEncodingOpr, GetFontOpr(GBK_FONT));
-	
-	INIT_LIST_HEAD(&g_tAsciiEncodingOpr.tList);
+
 	return RegisterEncodingOpr(&g_tAsciiEncodingOpr);
 }
 

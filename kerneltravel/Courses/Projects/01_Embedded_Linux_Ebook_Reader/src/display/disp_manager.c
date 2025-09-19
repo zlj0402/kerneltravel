@@ -23,7 +23,7 @@ int RegisterDispOpr(PT_DispOpr ptDispOpr) {
 
 	if (!ptDispOpr)
 		return -1;
-
+	
 	list_add_tail(&ptDispOpr->tList, &g_tDispOprHead);
 	
 	return 0;
