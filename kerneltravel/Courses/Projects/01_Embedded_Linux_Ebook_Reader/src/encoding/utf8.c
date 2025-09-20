@@ -114,7 +114,7 @@ static int Utf8GetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBufEn
 		dwSum = (ucVal << iCount) >> iCount;
 		for (int i = 1; i < iCount; ++i) {
 
-			ucVal = pucBufEnd[i] & 0x3f;
+			ucVal = pucBufStart[i] & 0x3f;
 			dwSum <<= 6;
 			dwSum |= ucVal;
 		}

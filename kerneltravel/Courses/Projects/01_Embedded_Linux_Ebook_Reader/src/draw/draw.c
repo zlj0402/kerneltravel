@@ -269,6 +269,14 @@ int ShowOnePage(unsigned char *pucTextFileMemCurPos) {
 
 	while (true) {
 
+		if (bHasNotClrScreen) {
+
+			printf(">>> 清屏一次 <<<\n");
+			/* ShowOnePage 时，先清一下屏 */
+			g_ptDispOpr->CleanScreen(COLOR_BACKGROUND);
+			bHasNotClrScreen = false;
+		}
+
 		iLen = g_ptEncodingOprForFile->GetCodeFrmBuf(pucBufStart, g_pucTextFileMemEnd, &dwCode);
 		if (iLen == 0) {
 
@@ -279,6 +287,7 @@ int ShowOnePage(unsigned char *pucTextFileMemCurPos) {
 		}
 
 		pucBufStart += iLen;
+		DBG_PRINTF("%s %s %d, buf: %p, len = %d, dwCode = 0x%x\n", __FILE__, __func__, __LINE__, pucBufStart, iLen, dwCode);
 
 		/**
 		 * \n\r 在 windows 中两个一起表示回车换行
@@ -321,13 +330,6 @@ int ShowOnePage(unsigned char *pucTextFileMemCurPos) {
 
 				/* 剩下的 LCD 空间不能满足显示这个字符 */
 				return 0;
-			}
-
-			if (bHasNotClrScreen) {
-
-				/* ShowOnePage 时，先清一下屏 */
-				g_ptDispOpr->CleanScreen(COLOR_BACKGROUND);
-				bHasNotClrScreen = false;
 			}
 
 			/* 显示一个字符 */
