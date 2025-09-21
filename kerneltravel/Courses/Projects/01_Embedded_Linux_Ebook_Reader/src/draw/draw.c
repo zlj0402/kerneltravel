@@ -286,8 +286,12 @@ int ShowOnePage(unsigned char *pucTextFileMemCurPos) {
 			return 0;
 		}
 
+ 		DBG_PRINTF("%s %s %d, buf: %p, len = %d, content = ", __FILE__, __func__, __LINE__, pucBufStart, iLen);
+		for (int i = 0; i < iLen; ++i)
+			DBG_PRINTF("0x%02x ", pucBufStart[i]);
+		DBG_PRINTF(", dwCode = 0x%x\n", dwCode);
+
 		pucBufStart += iLen;
-		DBG_PRINTF("%s %s %d, buf: %p, len = %d, dwCode = 0x%x\n", __FILE__, __func__, __LINE__, pucBufStart, iLen, dwCode);
 
 		/**
 		 * \n\r 在 windows 中两个一起表示回车换行
@@ -341,6 +345,7 @@ int ShowOnePage(unsigned char *pucTextFileMemCurPos) {
 			tFontBitmap.iCurOriginX = tFontBitmap.iNextOriginX;
 			tFontBitmap.iCurOriginY = tFontBitmap.iNextOriginY;
 			g_pucLcdNextPosAtFile = pucBufStart;
+			DBG_PRINTF("\n");
 			break;
 		}
 	}

@@ -183,6 +183,10 @@ static int FreetypeGetFontBitmap(unsigned int dwCode, PT_FontBitmap ptFontBitmap
         return -1;
     }
 
+
+	DBG_PRINTF("%s iPenX = %d, iPenY = %d, bitmap_left = %d, bitmap_top = %d, width = %d, rows = %d\n", 
+		__func__, iPenX, iPenY, g_tSlot->bitmap_left, g_tSlot->bitmap_top, g_tSlot->bitmap.width, g_tSlot->bitmap.rows);
+
 	// lcd coordinate
 	// 左上角: (iXLeft, iYTop)
 	// 右下角: (iXMax, iYMax) -> iYMax > iYTop
@@ -195,6 +199,9 @@ static int FreetypeGetFontBitmap(unsigned int dwCode, PT_FontBitmap ptFontBitmap
 	ptFontBitmap->iNextOriginX = iPenX + (g_tSlot->advance.x >> 6);
 	ptFontBitmap->iNextOriginY = iPenY;
 	ptFontBitmap->pucBuffer    = g_tSlot->bitmap.buffer;
+	
+	DBG_PRINTF("%s iXLeft = %d, iYTop = %d, iXMax = %d, iYMax = %d, iNextOriginX = %d, iNextOriginY = %d\n", 
+		__func__, ptFontBitmap->iXLeft, ptFontBitmap->iYTop, ptFontBitmap->iXMax, ptFontBitmap->iYMax, ptFontBitmap->iNextOriginX, ptFontBitmap->iNextOriginY);
 
 	return 0;
 }

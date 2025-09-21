@@ -103,21 +103,24 @@ static int Utf8GetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBufEn
 		return 0;
 	}
 
+	/* 无前导 1 */
 	if (iCount == 0) {
 
 		/* ASCII */
 		*pdwCode = pucBufStart[0];
-		return 1;
+		iCount = 1;
 	}
-	else {
+	else {	/* 有前导   1，被拆分的 Unicode */
 
-		dwSum = (ucVal << iCount) >> iCount;
+		// (ucVal << iCount) -> 整数提升：unsigned char 在进行算术运算前会被提升为 int 类型
+		dwSum = ((ucVal << iCount) & 0xff) >> iCount;
 		for (int i = 1; i < iCount; ++i) {
 
 			ucVal = pucBufStart[i] & 0x3f;
 			dwSum <<= 6;
 			dwSum |= ucVal;
 		}
+		*pdwCode = dwSum;
 	}
 
 	return iCount;
