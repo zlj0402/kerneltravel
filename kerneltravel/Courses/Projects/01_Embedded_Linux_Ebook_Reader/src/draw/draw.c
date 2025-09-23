@@ -33,7 +33,7 @@ static int g_dwFontSize;
 static PT_DispOpr g_ptDispOpr;
 
 static LIST_HEAD(g_tPagesHead);
-static struct list_head *g_ptCurPage = &g_tPagesHead;
+static struct list_head *g_ptCurPage = NULL;
 
 /**
  * @brief   打开一个文本文件，并建立内存映射，检测其编码格式
@@ -359,24 +359,34 @@ int ShowNextPage(void) {
 	PT_PageDesc ptPage;
 	unsigned char *pucTextFileMemCurPos;
 
-	// 原 g_ptCurPage 只有在第一次时，是没有赋值的
-	//pucTextFileMemCurPos = g_ptCurPage ?
-	//			g_ptCurPage->pucLcdNextPageFirstPosAtFile : g_pucLcdFirstPosAtFile;
-	// g_ptCurPage 不是 list head 头结点时 or 不是链表的最后一页，取其下一个
-	pucTextFileMemCurPos = list_end(g_ptCurPage, &g_tPagesHead) ? g_pucLcdFirstPosAtFile :
-							list_entry(g_ptCurPage, T_PageDesc, tList)->pucLcdNextPageFirstPosAtFile;
+	// g_ptCurPage 不为 NULL 时，从当前 Page 的属性中，取得下一页的字符位置;
+	if (g_ptCurPage)
+		pucTextFileMemCurPos = list_entry(g_ptCurPage, T_PageDesc, tList)->pucLcdNextPageFirstPosAtFile;
+	else
+		pucTextFileMemCurPos = g_pucLcdFirstPosAtFile;
+
+	if (pucTextFileMemCurPos >= g_pucTextFileMemEnd)
+		/* 文本处理结束，页翻不动了 */
+		return 0;
 	
 	error = ShowOnePage(pucTextFileMemCurPos);
 	DBG_PRINTF("%s %s %d, %d\n", __FILE__, __func__, __LINE__, error);
 
 	if (error == 0) {
 
-		/* 拥有下一个页面的话，就返回，因为可能是从旧页面往后，重新翻页 */
-		if (list_end(g_ptCurPage, &g_tPagesHead) && 
-			list_is_head(g_ptCurPage, &g_tPagesHead)) {
+		if (g_ptCurPage) {
+			
+			/* 拥有下一个页面的话，就返回，因为可能是从旧页面往后，重新翻页 */
+			if (!list_end(g_ptCurPage, &g_tPagesHead)) {
+			
+				g_ptCurPage = g_ptCurPage->next;
+				return 0;
+			}
+		} 
+		else {
 
-			g_ptCurPage = g_ptCurPage->next;
-			return 0;
+			/* 程序初始，赋值链表头 */
+			g_ptCurPage = &g_tPagesHead;
 		}
 
 		/* 新的页面被第一次翻到，需要 malloc 一个新的 Page */
@@ -387,13 +397,20 @@ int ShowNextPage(void) {
 			ptPage->pucLcdNextPageFirstPosAtFile = g_pucLcdNextPosAtFile;
 			// 插入到页面的链表当中
 			list_add_tail(&ptPage->tList, &g_tPagesHead);
+			DBG_PRINTF("%s %s %d new page: %p, is added at the tail: %s\n", 
+				__FILE__, __func__, __LINE__, (unsigned char*)ptPage, list_end(&ptPage->tList, &g_tPagesHead) ? "true" : "false");
 			// 当前游标指向 malloc 出来的新页面，也即当前页面
+			ptPage->iPage = list_is_head(g_ptCurPage, &g_tPagesHead) ? 1 : list_entry(g_ptCurPage, T_PageDesc, tList)->iPage + 1;
+			// 在此之前，g_ptCurPage 还是指向上一个 Page
 			g_ptCurPage = g_ptCurPage->next;
-			DBG_PRINTF("%s %d, pos = %p\n", __func__, __LINE__, &ptPage->pucLcdFirstPosAtFile);
+			printf("%s %d, pos = %p, page num: %d\n", __func__, __LINE__, &ptPage->pucLcdFirstPosAtFile, ptPage->iPage);
 			return 0;
 		}
-		else 
+		else {
+
+			DBG_PRINTF("%s %d new page malloc error\n", __func__, __LINE__);
 			return -1;
+		}
 	}
 
 	return error;
@@ -405,15 +422,13 @@ int ShowPrePage(void) {
 
 	DBG_PRINTF_MARK;
 
-	// g_ptCurPage 本身不为 head，及 g_ptCurPage->prev 也不为 head，则
-
-	if (list_is_head(g_ptCurPage, &g_tPagesHead) || 
-			list_is_head(g_ptCurPage->prev, &g_tPagesHead)) {
+	//g_ptCurPage->prev 也不为 head，即 当前 page 不是头结点的话
+	if (list_is_head(g_ptCurPage->prev, &g_tPagesHead)) {
 		return -1;
 	}
 
 	PT_PageDesc ptPrePage = list_entry(g_ptCurPage->prev, T_PageDesc, tList);
-	DBG_PRINTF("%s %d, pos = %p\n", __func__, __LINE__, ptPrePage->pucLcdFirstPosAtFile);
+	printf("%s %d, pos = %p, page num = %d\n", __func__, __LINE__, ptPrePage->pucLcdFirstPosAtFile, ptPrePage->iPage);
 	error = ShowOnePage(ptPrePage->pucLcdFirstPosAtFile);
 
 	if (error == 0) {
