@@ -29,6 +29,7 @@ inline void InitFontSupportedListHead(PT_EncodingOpr ptEncodingOpr) {
 	INIT_LIST_HEAD(&ptEncodingOpr->tFontOprSupportedList);
 }
 
+int GetFileCoding(unsigned char* pucBufHead);
 int RegisterEncodingOpr(PT_EncodingOpr ptEncodingOpr);
 void ShowEncodingOpr(void);
 PT_EncodingOpr SelectEncodingOprForFile(unsigned char *pucFileBufHead);
@@ -40,6 +41,5 @@ int AsciiEncodingInit();
 int Utf16leEncodingInit();
 int Utf16beEncodingInit();
 int Utf8EncodingInit();
-
 
 #endif 	//ENCODING_MANAGER_H

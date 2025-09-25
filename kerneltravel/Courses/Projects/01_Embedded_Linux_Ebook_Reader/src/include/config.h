@@ -28,12 +28,7 @@
 #define DBG_PRINTF
 #define DBG_PRINTF_MARK DBG_PRINTF("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__)
 
-extern const char aStrUtf8[];
-extern const char aStrUtf16le[];
-extern const char aStrUtf16be[];
-
 /* 函数声明 */
 char* FormatTimeCustom(time_t timestamp, char* buf, int buf_len);
-int GetFileCoding(unsigned char* pucBufHead);
 
 #endif 	// CONFIG_H

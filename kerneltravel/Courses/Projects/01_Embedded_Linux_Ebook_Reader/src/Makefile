@@ -1,6 +1,6 @@
 CROSSCOMPILE := arm-linux-gnueabihf-
 
-CFLAGS 	:= -Wall -O2 -g -c
+CFLAGS 	:= -Wall -O2 -c
 CFLAGS  += -I$(PWD)/include 
 
 # for 100ask imx6ull
@@ -23,7 +23,7 @@ OBJS := main.o \
 			fonts/freetype.o              \
 			fonts/fonts_manager.o		  \
 			draw/draw.o                   \
-			config/config.o
+			utils/utils.o
 
 all: $(OBJS)
 	$(CC) $(LDFLAGS) -o show_file $^

@@ -9,8 +9,37 @@
 // malloc
 #include <stdlib.h>
 
+static const char aStrUtf8[]   = {0xEF, 0xBB, 0xBF, 0};
+static const char aStrUtf16le[] = {0xFF, 0xFE, 0};
+static const char aStrUtf16be[] = {0xFE, 0xFF, 0};
 
 static LIST_HEAD(g_tEncodingOprHead);
+
+/**
+ * @brief 根据文件头部字节判断文件编码类型
+ *
+ * 通过检测文件缓冲区起始位置的 BOM (Byte Order Mark)，
+ * 判断文件是 UTF-8、UTF-16LE、UTF-16BE 还是 ASCII 编码。
+ *
+ * @param pucBufHead 文件缓冲区起始位置指针
+ *
+ * @retval UTF8_ENCODING     文件为 UTF-8 编码
+ * @retval UTF16_LE_ENCODING 文件为 UTF-16 Little Endian 编码
+ * @retval UTF16_BE_ENCODING 文件为 UTF-16 Big Endian 编码
+ * @retval ASCII_ENCODING    文件为 ASCII 编码
+ */
+int GetFileCoding(unsigned char* pucBufHead) {
+
+    if (strncmp((const char*)pucBufHead, aStrUtf8, 3) == 0) {
+        return UTF8_ENCODING;
+    } else if (strncmp((const char*)pucBufHead, aStrUtf16le, 2) == 0) {
+        return UTF16_LE_ENCODING;
+    } else if (strncmp((const char*)pucBufHead, aStrUtf16be, 2) == 0) {
+        return UTF16_BE_ENCODING;
+    } else {
+        return ASCII_ENCODING;
+    }
+}
 
 /**
  * @brief 注册编码操作到全局编码操作链表
