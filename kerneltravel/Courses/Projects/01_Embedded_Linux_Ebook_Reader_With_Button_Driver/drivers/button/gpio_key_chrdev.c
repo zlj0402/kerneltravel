@@ -10,12 +10,12 @@
 
 #define MAXGKEYS 128
 #define CHRDEV_NAME "reader_button_chr"
-#define BUTTON_CLASS_NAME "reader_button"
+#define BUTTON_CLASS_NAME "reader_button_cls"
+#define BUTTON_DEV_NAME "reader_button_dev"
 
 /* 主设备号 */
 static int major;
 static struct class* button_class;
-static struct button_operations* p_button_opr;
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> file_operations & fops.read <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -54,30 +54,6 @@ static struct file_operations button_drv = {
 	.fasync = button_drv_fasync,
 };
 
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> button operations <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-void register_button_operations(struct button_operations* opr) {
-
-	int i;
-	p_button_opr = opr;
-
-	for (i = 0; i < opr->count; ++i) {
-
-		device_create(button_class, NULL, MKDEV(major, i), NULL, "reader_button%d", i);
-		printk("%s %s %d device_create: reader_button%d\n", __FILE__, __FUNCTION__, __LINE__, i);
-	}
-}
-
-void unregister_button_operations(void) {
-
-	int i;
-
-	for (i = 0; i < p_button_opr->count; ++i) {
-
-		device_destroy(button_class, MKDEV(major, i));
-	}
-}
-
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> module <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 static int __init button_chr_dev_init(void) {
@@ -99,6 +75,8 @@ static int __init button_chr_dev_init(void) {
 		unregister_chrdev(major, BUTTON_CLASS_NAME);
 		return PTR_ERR(button_class);
 	}
+
+	device_create(button_class, NULL, MKDEV(major, 0), NULL, BUTTON_DEV_NAME);
 
 	printk(">>>>> %s -- %s, button_chrdev module loaded! <<<<<\n", __FILE__, __FUNCTION__);
 	return 0;
