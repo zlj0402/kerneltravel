@@ -5,10 +5,9 @@
 // poll_table
 #include <linux/poll.h>
 
-#include <button_opr.h>
 #include <keys_queue.h>
+#include <button_opr.h>
 
-#define MAXGKEYS 128
 #define CHRDEV_NAME "reader_button_chr"
 #define BUTTON_CLASS_NAME "reader_button_cls"
 #define BUTTON_DEV_NAME "reader_button_dev"

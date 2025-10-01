@@ -42,7 +42,7 @@ struct keys_queue *keys_queue_create(int size) {
     q->get   = kq_get;
     return q;
 }
-EXPORT_SYMBOL(keys_queue_create);
+//EXPORT_SYMBOL(keys_queue_create);
 
 void keys_queue_destroy(struct keys_queue *q) {
 
@@ -56,5 +56,5 @@ void keys_queue_destroy(struct keys_queue *q) {
 
     free(q);
 }
-EXPORT_SYMBOL(keys_queue_destroy);
+//EXPORT_SYMBOL(keys_queue_destroy);
 

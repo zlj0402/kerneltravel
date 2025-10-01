@@ -16,8 +16,6 @@ struct keys_queue {
     int  (*get)(struct keys_queue *);
 };
 
-extern struct keys_queue* kque;
-
 struct keys_queue *keys_queue_create(int size);
 void keys_queue_destroy(struct keys_queue *q);
 
