@@ -25,6 +25,7 @@
 #define COLOR_FOREGROUND   0x514438  /* 褐色字体 */
 
 //#define DBG_PRINTF printf
+#define DEBUG true
 #define DBG_PRINTF
 #define DBG_PRINTF_MARK DBG_PRINTF("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__)
 

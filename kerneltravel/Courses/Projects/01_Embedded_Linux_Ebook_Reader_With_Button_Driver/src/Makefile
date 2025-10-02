@@ -1,12 +1,12 @@
 CROSSCOMPILE := arm-linux-gnueabihf-
 
 CFLAGS 	:= -Wall -O2 -c
-CFLAGS  += -I$(PWD)/include 
+CFLAGS  += -I$(PROJECT_ROOT)/src/include
 
 # for 100ask imx6ull
 #CFLAGS += -I /home/book/100ask_imx6ull-sdk/ToolChain/arm-buildroot-linux-gnueabihf_sdk-buildroot/arm-buildroot-linux-gnueabihf/sysroot/usr/include/freetype2
 
-LDFLAGS := -lm -lfreetype
+LDFLAGS := -lm -lfreetype -lpthread
 
 CC 	:= $(CROSSCOMPILE)gcc
 

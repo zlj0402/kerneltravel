@@ -380,6 +380,10 @@ int ShowNextPage(void) {
 			if (!list_end(g_ptCurPage, &g_tPagesHead)) {
 			
 				g_ptCurPage = g_ptCurPage->next;
+				if (DEBUG) {
+					ptPage = list_entry(g_ptCurPage, T_PageDesc, tList);
+					printf("%s %d, pos = %p, page num: %d -- past\n", __func__, __LINE__, &ptPage->pucLcdFirstPosAtFile, ptPage->iPage);
+				}
 				return 0;
 			}
 		} 
@@ -428,7 +432,7 @@ int ShowPrePage(void) {
 	}
 
 	PT_PageDesc ptPrePage = list_entry(g_ptCurPage->prev, T_PageDesc, tList);
-	printf("%s %d, pos = %p, page num = %d\n", __func__, __LINE__, ptPrePage->pucLcdFirstPosAtFile, ptPrePage->iPage);
+	printf("%s %d, pos = %p, page num = %d -- past\n", __func__, __LINE__, ptPrePage->pucLcdFirstPosAtFile, ptPrePage->iPage);
 	error = ShowOnePage(ptPrePage->pucLcdFirstPosAtFile);
 
 	if (error == 0) {

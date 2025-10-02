@@ -8,13 +8,83 @@
 #include <unistd.h>
 // strtoul
 #include <stdlib.h>
+// static pthread_mutex_t
+#include <pthread.h>
+// open
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+// signal
+#include <signal.h>
 
 #include <draw.h>
+#include <config.h>
 #include <disp_manager.h>
 #include <fonts_manager.h>
 #include <encoding_manager.h>
 
 #define STRLEN 128
+#define READER_DEV "/dev/reader_button"
+
+static char g_cOpr;
+static int g_iDevFd;
+static pthread_mutex_t g_tOprMutex = PTHREAD_MUTEX_INITIALIZER;  // 互斥锁
+static bool g_bPollThreadRunning = true;  // 新增的变量，用于控制线程运行
+
+// 用于信号安全的标志
+volatile sig_atomic_t g_key_pending = 0;
+volatile sig_atomic_t g_key_val = 0; // 存储按键的值
+
+bool g_bKeyEvent = false; // 按键事件标志
+
+// 信号处理函数
+static void SigFunc(int sig) {
+    int iVal;
+    ssize_t n = read(g_iDevFd, &iVal, sizeof(iVal)); // read 是 async-signal-safe
+    if (n == sizeof(iVal)) {
+        int val = iVal & 0x00ff;
+        if (val == 1) g_key_val = 'u';   // 上一页
+        else if (val == 2) g_key_val = 'n';  // 下一页
+        else g_key_val = 0;  // 其他无效按键
+        g_key_pending = 1;  // 标记有按键待处理
+    }
+}
+
+static int OpenButtonDev(char *pcButtonDev) {
+
+	g_iDevFd = open(pcButtonDev, O_RDWR);
+	if (g_iDevFd == -1) {
+
+		printf("can not open file %s\n", pcButtonDev);
+		return -1;
+	}
+
+	signal(SIGIO, SigFunc);
+	fcntl(g_iDevFd, F_SETOWN, getpid());
+	int iOflags = fcntl(g_iDevFd, F_GETFL);
+	fcntl(g_iDevFd, F_SETFL, iOflags | FASYNC);
+	
+	return 0;
+}
+
+void* ReadButton(void *arg) {
+
+	if (OpenButtonDev((char*)arg)) {
+		
+		printf("Open button device node error\n");
+		return NULL;
+	}
+	
+	while(g_bPollThreadRunning) {
+
+		DBG_PRINTF(" -- \n");
+		sleep(10);
+	}
+
+	close(g_iDevFd);
+
+	return NULL;
+}
 
 static inline void CommandsFault(char **argv) {
 
@@ -26,7 +96,6 @@ int main(int argc, char* argv[]) {
 
 	int error;
 	int iOptc;
-	char cOpr;
 	unsigned int dwFontSize = 16;
 	char acDisplay[STRLEN];
 	char acHzkFile[STRLEN];
@@ -151,23 +220,76 @@ int main(int argc, char* argv[]) {
 		printf("Error to show first page\n");
 		return -1;
 	}
-
-	while (1) {
-
-		do {
-			cOpr = getchar();
-		} while ((cOpr != 'n') && (cOpr != 'u') && (cOpr != 'q'));
-
-		if (cOpr == 'n') {
-			ShowNextPage();
-		}
-		else if (cOpr == 'u') {
-			ShowPrePage();
-		}
-		else {
-			return 0;
-		}
-	}
 	
-	return 0;
+    // 启动按键监听线程
+    pthread_t tPollThread;
+    if (pthread_create(&tPollThread, NULL, ReadButton, READER_DEV) != 0) {
+        perror("Failed to create poll thread");
+        close(g_iDevFd);
+        return -1;
+    }
+
+	// 主循环
+    while (1) {
+        // 设置文件描述符集合
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+
+        struct timeval timeout = { 0, 100000 }; // 设置适当的超时
+        int ret = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+
+        if (ret > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
+            // 获取输入命令
+            char cInput = getchar();
+            if (cInput == 'n' || cInput == 'u' || cInput == 'q') {
+                pthread_mutex_lock(&g_tOprMutex);  	// 只在修改 g_cOpr 时加锁
+                g_cOpr = cInput;
+                pthread_mutex_unlock(&g_tOprMutex);  // 释放锁
+
+                if (g_cOpr == 'n') {
+                    ShowNextPage();
+                } else if (g_cOpr == 'u') {
+                    ShowPrePage();
+                } else {
+                    // 设置标志位停止按键监听线程
+                    g_bPollThreadRunning = false;
+                    break;
+                }
+            }
+        }
+
+        // 非阻塞地检查并处理按键事件
+        if (g_key_pending) {
+            pthread_mutex_lock(&g_tOprMutex);
+            if (g_key_val) {
+                g_cOpr = (char)g_key_val;
+            }
+            pthread_mutex_unlock(&g_tOprMutex);
+
+            // 清除 pending（volatile sig_atomic_t）
+            g_key_pending = 0;
+            g_key_val = 0;
+
+            // 按键事件发生后处理翻页
+            pthread_mutex_lock(&g_tOprMutex);
+            if (g_cOpr == 'n') {
+                ShowNextPage();
+            } else if (g_cOpr == 'u') {
+                ShowPrePage();
+            } else if (g_cOpr == 'q') {
+                g_bPollThreadRunning = false;
+                pthread_mutex_unlock(&g_tOprMutex);
+                break;
+            }
+            pthread_mutex_unlock(&g_tOprMutex);
+        }
+
+        // 继续下一次循环
+    }
+
+    // 等待按键线程结束
+    pthread_join(tPollThread, NULL);
+
+    return 0;
 }
