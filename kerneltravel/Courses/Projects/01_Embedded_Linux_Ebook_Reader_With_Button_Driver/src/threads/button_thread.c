@@ -26,6 +26,7 @@ static void SigFunc(int sig) {
         int val = iVal & 0x00ff;
         if (val == 1) g_tKeyVal = 'u';   // 上一页
         else if (val == 2) g_tKeyVal = 'n'; // 下一页
+		else if (val == 3) g_tKeyVal = 'q';	// Quit
         else g_tKeyVal = 0;
         g_tKeyPending = 1;
     }
