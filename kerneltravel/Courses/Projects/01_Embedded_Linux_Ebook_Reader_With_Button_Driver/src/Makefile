@@ -23,7 +23,8 @@ OBJS := main.o \
 			fonts/freetype.o              \
 			fonts/fonts_manager.o		  \
 			draw/draw.o                   \
-			utils/utils.o
+			utils/utils.o				  \
+			threads/button_thread.o
 
 all: $(OBJS)
 	$(CC) $(LDFLAGS) -o show_file $^

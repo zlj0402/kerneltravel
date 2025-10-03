@@ -19,68 +19,13 @@
 
 #include <draw.h>
 #include <config.h>
+#include <button_thread.h>
 #include <disp_manager.h>
 #include <fonts_manager.h>
 #include <encoding_manager.h>
 
 #define STRLEN 128
 #define READER_DEV "/dev/reader_button"
-
-static int g_iDevFd;
-static volatile bool g_bPollThreadRunning = true;  // 新增的变量，用于控制线程运行
-
-// 用于信号安全的标志
-volatile sig_atomic_t g_tKeyPending = 0;
-volatile sig_atomic_t g_tKeyVal = 0; // 存储按键的值
-
-// 信号处理函数
-static void SigFunc(int sig) {
-    int iVal;
-    ssize_t n = read(g_iDevFd, &iVal, sizeof(iVal)); // read 是 async-signal-safe
-    if (n == sizeof(iVal)) {
-        int val = iVal & 0x00ff;
-        if (val == 1) g_tKeyVal = 'u';   // 上一页
-        else if (val == 2) g_tKeyVal = 'n';  // 下一页
-        else g_tKeyVal = 0;  // 其他无效按键
-        g_tKeyPending = 1;  // 标记有按键待处理
-    }
-}
-
-static int OpenButtonDev(char *pcButtonDev) {
-
-	g_iDevFd = open(pcButtonDev, O_RDWR);
-	if (g_iDevFd == -1) {
-
-		printf("can not open file %s\n", pcButtonDev);
-		return -1;
-	}
-
-	signal(SIGIO, SigFunc);
-	fcntl(g_iDevFd, F_SETOWN, getpid());
-	int iOflags = fcntl(g_iDevFd, F_GETFL);
-	fcntl(g_iDevFd, F_SETFL, iOflags | FASYNC);
-	
-	return 0;
-}
-
-void* ReadButton(void *arg) {
-
-	if (OpenButtonDev((char*)arg)) {
-		
-		printf("Open button device node error\n");
-		return NULL;
-	}
-	
-	while(g_bPollThreadRunning) {
-
-		DBG_PRINTF(" -- \n");
-		sleep(10);
-	}
-
-	close(g_iDevFd);
-
-	return NULL;
-}
 
 static inline void CommandsFault(char **argv) {
 
@@ -100,7 +45,6 @@ static inline int HandleOperation(char cOpr) {
 	} else if (cOpr == 'u') {
 		ShowPrePage();
 	} else if (cOpr == 'q') {
-		g_bPollThreadRunning = false;
 		return -1;
 	}
 	
@@ -236,13 +180,12 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 	
-    // 启动按键监听线程
-    pthread_t tPollThread;
-    if (pthread_create(&tPollThread, NULL, ReadButton, READER_DEV) != 0) {
-        perror("Failed to create poll thread");
-        close(g_iDevFd);
-        return -1;
-    }
+	// 启动按键线程
+	if (!ButtonThreadStart(READER_DEV)) {
+		
+		fprintf(stderr, "Failed to start button thread\n");
+		return -1;
+	}
 
 	// 主循环
     while (1) {
@@ -265,28 +208,22 @@ int main(int argc, char* argv[]) {
 				}
             }
         }
-
-        // 非阻塞地检查并处理按键事件
-        if (g_tKeyPending && g_tKeyVal) {
+		
+		char cKey;
+		if (ButtonGetKey(&cKey)) {
 			
-			char cKeyVal = g_tKeyVal;
-            // 清除 pending（volatile sig_atomic_t）-- 还是要放在最前面，显示的慢的话，同是按键事件来了，g_tKeyVal 先是获得键值，显示完，又被赋值为 0 了;
-            g_tKeyPending = 0;
-            g_tKeyVal = 0;
-			
-            // 按键事件发生后处理翻页
-			if (HandleOperation(cKeyVal)) {
+			if (HandleOperation(cKey)) {
 				
-				printf("Quit display!");
+				printf("Quit display!\n");
 				break;
 			}
-        }
+		}
 
         // 继续下一次循环
     }
 
-    // 等待按键线程结束
-    pthread_join(tPollThread, NULL);
+    // 停止按键线程
+	ButtonThreadStop();
 
     return 0;
 }
