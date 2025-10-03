@@ -26,16 +26,12 @@
 #define STRLEN 128
 #define READER_DEV "/dev/reader_button"
 
-static char g_cOpr;
 static int g_iDevFd;
-static pthread_mutex_t g_tOprMutex = PTHREAD_MUTEX_INITIALIZER;  // 互斥锁
-static bool g_bPollThreadRunning = true;  // 新增的变量，用于控制线程运行
+static volatile bool g_bPollThreadRunning = true;  // 新增的变量，用于控制线程运行
 
 // 用于信号安全的标志
-volatile sig_atomic_t g_key_pending = 0;
-volatile sig_atomic_t g_key_val = 0; // 存储按键的值
-
-bool g_bKeyEvent = false; // 按键事件标志
+volatile sig_atomic_t g_tKeyPending = 0;
+volatile sig_atomic_t g_tKeyVal = 0; // 存储按键的值
 
 // 信号处理函数
 static void SigFunc(int sig) {
@@ -43,10 +39,10 @@ static void SigFunc(int sig) {
     ssize_t n = read(g_iDevFd, &iVal, sizeof(iVal)); // read 是 async-signal-safe
     if (n == sizeof(iVal)) {
         int val = iVal & 0x00ff;
-        if (val == 1) g_key_val = 'u';   // 上一页
-        else if (val == 2) g_key_val = 'n';  // 下一页
-        else g_key_val = 0;  // 其他无效按键
-        g_key_pending = 1;  // 标记有按键待处理
+        if (val == 1) g_tKeyVal = 'u';   // 上一页
+        else if (val == 2) g_tKeyVal = 'n';  // 下一页
+        else g_tKeyVal = 0;  // 其他无效按键
+        g_tKeyPending = 1;  // 标记有按键待处理
     }
 }
 
@@ -90,6 +86,25 @@ static inline void CommandsFault(char **argv) {
 
 	printf("Usage: %s [-l] [-s Size] [-f font_file] [-h HZK] <text_file>\n", argv[0]);
 	printf("Usage: %s -l\n", argv[0]);
+}
+
+/**
+ * q -> return -1
+ * n/u -> return 0
+ */
+static inline int HandleOperation(char cOpr) {
+	
+	// 按键事件发生后处理翻页
+	if (cOpr == 'n') {
+		ShowNextPage();
+	} else if (cOpr == 'u') {
+		ShowPrePage();
+	} else if (cOpr == 'q') {
+		g_bPollThreadRunning = false;
+		return -1;
+	}
+	
+	return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -236,53 +251,35 @@ int main(int argc, char* argv[]) {
         FD_ZERO(&readfds);
         FD_SET(STDIN_FILENO, &readfds);
 
-        struct timeval timeout = { 0, 100000 }; // 设置适当的超时
+        struct timeval timeout = { 0, 100000 }; // 100 ms timeout
         int ret = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
 
         if (ret > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
             // 获取输入命令
             char cInput = getchar();
             if (cInput == 'n' || cInput == 'u' || cInput == 'q') {
-                pthread_mutex_lock(&g_tOprMutex);  	// 只在修改 g_cOpr 时加锁
-                g_cOpr = cInput;
-                pthread_mutex_unlock(&g_tOprMutex);  // 释放锁
-
-                if (g_cOpr == 'n') {
-                    ShowNextPage();
-                } else if (g_cOpr == 'u') {
-                    ShowPrePage();
-                } else {
-                    // 设置标志位停止按键监听线程
-                    g_bPollThreadRunning = false;
-                    break;
-                }
+				if (HandleOperation(cInput)) {
+					
+					printf("Quit display!");
+					break;
+				}
             }
         }
 
         // 非阻塞地检查并处理按键事件
-        if (g_key_pending) {
-            pthread_mutex_lock(&g_tOprMutex);
-            if (g_key_val) {
-                g_cOpr = (char)g_key_val;
-            }
-            pthread_mutex_unlock(&g_tOprMutex);
-
-            // 清除 pending（volatile sig_atomic_t）
-            g_key_pending = 0;
-            g_key_val = 0;
-
+        if (g_tKeyPending && g_tKeyVal) {
+			
+			char cKeyVal = g_tKeyVal;
+            // 清除 pending（volatile sig_atomic_t）-- 还是要放在最前面，显示的慢的话，同是按键事件来了，g_tKeyVal 先是获得键值，显示完，又被赋值为 0 了;
+            g_tKeyPending = 0;
+            g_tKeyVal = 0;
+			
             // 按键事件发生后处理翻页
-            pthread_mutex_lock(&g_tOprMutex);
-            if (g_cOpr == 'n') {
-                ShowNextPage();
-            } else if (g_cOpr == 'u') {
-                ShowPrePage();
-            } else if (g_cOpr == 'q') {
-                g_bPollThreadRunning = false;
-                pthread_mutex_unlock(&g_tOprMutex);
-                break;
-            }
-            pthread_mutex_unlock(&g_tOprMutex);
+			if (HandleOperation(cKeyVal)) {
+				
+				printf("Quit display!");
+				break;
+			}
         }
 
         // 继续下一次循环

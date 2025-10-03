@@ -4,7 +4,7 @@ all: driver src
 
 # 编译 drivers 目录
 driver:
-	$(MAKE) -C drivers/button_old
+	$(MAKE) -C drivers/button_old2
 
 # 编译 src 目录
 src:

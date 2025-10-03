@@ -98,6 +98,7 @@ static int gpio_key_drv_fasync(int fd, struct file *file, int on) {
 		return -EIO;
 }
 
+
 static struct file_operations gpio_key_drv = {
 	
 	.owner = THIS_MODULE,
