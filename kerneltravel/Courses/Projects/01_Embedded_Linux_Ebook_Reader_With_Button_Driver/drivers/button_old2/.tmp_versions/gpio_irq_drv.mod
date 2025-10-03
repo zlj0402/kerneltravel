@@ -1,3 +1,0 @@
-/home/zlj/zljgit/kerneltravel/Courses/Projects/01_Embedded_Linux_Ebook_Reader_With_Button_Driver/drivers/button_old2/gpio_irq_drv.ko
-/home/zlj/zljgit/kerneltravel/Courses/Projects/01_Embedded_Linux_Ebook_Reader_With_Button_Driver/drivers/button_old2/gpio_irq_drv.o
-

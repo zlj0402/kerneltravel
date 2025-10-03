@@ -12,7 +12,7 @@ src:
 
 # 清理所有目标
 clean:
-	$(MAKE) -C drivers/button_old clean
+	$(MAKE) -C drivers/button_old2 clean
 	$(MAKE) -C src clean
 
 .PHONY: all driver src clean
