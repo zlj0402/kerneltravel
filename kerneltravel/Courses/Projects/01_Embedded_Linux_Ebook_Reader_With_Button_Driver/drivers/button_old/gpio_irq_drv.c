@@ -9,6 +9,8 @@
 #include <linux/device.h>
 #include <linux/uaccess.h>
 #include <linux/poll.h>
+// jiffies
+#include <linux/jiffies.h>
 
 #include "load.h"
 
@@ -32,6 +34,9 @@ static struct class* gpio_key_class;
 
 static wait_queue_head_t gpio_key_wait;
 static DECLARE_WAIT_QUEUE_HEAD(gpio_key_wait);
+
+static unsigned long g_ulLastKeyTime;
+static int g_iLastKeyVal = 0;
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> round robin queue <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -98,6 +103,7 @@ static int gpio_key_drv_fasync(int fd, struct file *file, int on) {
 		return -EIO;
 }
 
+
 static struct file_operations gpio_key_drv = {
 	
 	.owner = THIS_MODULE,
@@ -110,9 +116,10 @@ static struct file_operations gpio_key_drv = {
 
 static irqreturn_t gpio_key_irq_zlj(int irq, void* dev_id) {
 
-	struct gpio_key* gpio_key = dev_id;
 	int val;
 	int key;
+	unsigned long now;
+	struct gpio_key* gpio_key = dev_id;
 	
 	val = gpiod_get_value(gpio_key->gpiod);
 	
@@ -120,10 +127,16 @@ static irqreturn_t gpio_key_irq_zlj(int irq, void* dev_id) {
 	if (val == 0)
 		return IRQ_HANDLED;
 	
-	val = 1 << gpio_key->idx;
+	now = jiffies;
+	
+	val = val != g_iLastKeyVal && jiffies_to_msecs(now - g_ulLastKeyTime) < 50 ? 3 : (1 << gpio_key->idx);
 	key = (gpio_key->gpio << 8) | val;
 	printk("irq %d gpio %d val %d key %d\n\n", irq, gpio_key->gpio, val, key);
 	put_key(key);
+	
+	g_iLastKeyVal = val;
+	g_ulLastKeyTime = now;
+	
 	wake_up_interruptible(&gpio_key_wait);
 	// #define POLL_IN		(__SI_POLL|1)	/* data input available */
 	kill_fasync(&button_fasync, SIGIO, POLL_IN);
