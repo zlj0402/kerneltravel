@@ -24,6 +24,8 @@
 #include <fonts_manager.h>
 #include <encoding_manager.h>
 
+#include "load.h"
+
 #define STRLEN 128
 #define READER_DEV "/dev/reader_button"
 

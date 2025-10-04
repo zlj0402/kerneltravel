@@ -4,10 +4,14 @@ set -e
 make clean
 make
 
+SRC="src2"
+BUTTON_DIR_NAME="button_old2"
 # 目标目录
 TARGET_DIR="/home/zlj/zljgit/kerneltravel/Courses/Projects/01_Embedded_Linux_Ebook_Reader_With_Button_Driver"
+# 需要拷贝至的目录
 COPY_DIR="/mnt/nfs_shared/Projects/01_Embedded_Linux_Ebook_Reader_With_Button_Driver/button_old"
-OBJS="./src/show_file ./drivers/button_old2/gpio_irq_drv.ko ./lazy_dog_board.sh"
+# 需要拷贝的目标
+OBJS="./$SRC/show_file ./drivers/$BUTTON_DIR_NAME/gpio_irq_drv.ko ./lazy_dog_board.sh"
 
 if [ "$PWD" = "$TARGET_DIR" ]; then
 	echo "当前目录是 $PWD, 执行拷贝..."

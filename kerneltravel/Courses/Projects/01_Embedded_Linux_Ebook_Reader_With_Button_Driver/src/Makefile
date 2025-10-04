@@ -1,5 +1,6 @@
 CROSSCOMPILE := arm-linux-gnueabihf-
 
+SRC ?= $(notdir $(CURDIR))
 CFLAGS 	:= -Wall -O2 -c
 CFLAGS  += -I$(PROJECT_ROOT)/src/include
 
