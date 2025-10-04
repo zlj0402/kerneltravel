@@ -4,8 +4,9 @@ set -e
 make clean
 make
 
-SRC="src2"
-BUTTON_DIR_NAME="button_old2"
+SRC=$(make -s -f Makefile -pn | awk -F= '/^SRC[[:space:]]*:?=/{print $2}' | tail -n1 | xargs)
+BUTTON_DIR_NAME=$(make -s -f Makefile -pn | awk -F= '/^BUTTON_DIR_NAME[[:space:]]*:?=/{print $2}' | tail -n1 | xargs)
+
 # 目标目录
 TARGET_DIR="/home/zlj/zljgit/kerneltravel/Courses/Projects/01_Embedded_Linux_Ebook_Reader_With_Button_Driver"
 # 需要拷贝至的目录
