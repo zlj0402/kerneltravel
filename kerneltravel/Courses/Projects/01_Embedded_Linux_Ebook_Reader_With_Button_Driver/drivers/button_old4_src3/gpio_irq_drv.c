@@ -15,6 +15,7 @@
 #include "load.h"
 
 #define CHRDEV_NAME "reader_button"
+#define ONE_DAY_JIFFIES (24 * 60 * 60 * 100)
 
 struct gpio_key {
 	
@@ -35,8 +36,8 @@ static struct class* gpio_key_class;
 static wait_queue_head_t gpio_key_wait;
 static DECLARE_WAIT_QUEUE_HEAD(gpio_key_wait);
 
-static unsigned long g_ulLastKeyTime;
-static int g_iLastKeyVal = 0;
+static unsigned int g_ulLastKeyTime;
+static unsigned int g_iLastKeyVal;
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> round robin queue <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -83,7 +84,7 @@ ssize_t gpio_key_drv_read(struct file *file, char __user *buf, size_t size, loff
 	
 	wait_event_interruptible(gpio_key_wait, !is_key_buf_empty());
 	key = get_key();
-	err = copy_to_user(buf, &key, sizeof(int));
+	err = copy_to_user(buf, &key, sizeof(unsigned int));
 
 	return sizeof(int);
 }
@@ -118,8 +119,8 @@ static struct file_operations gpio_key_drv = {
 static irqreturn_t gpio_key_irq_zlj(int irq, void* dev_id) {
 
 	int val;
-	int key;
-	unsigned long now;
+	unsigned int key;
+	unsigned int now;
 	struct gpio_key* gpio_key = dev_id;
 	
 	val = gpiod_get_value(gpio_key->gpiod);
@@ -128,15 +129,20 @@ static irqreturn_t gpio_key_irq_zlj(int irq, void* dev_id) {
 	if (val == 0)
 		return IRQ_HANDLED;
 	
-	now = jiffies;
+	now = jiffies % ONE_DAY_JIFFIES;
 	
-	val = val != g_iLastKeyVal && jiffies_to_msecs(now - g_ulLastKeyTime) < 50 ? 3 : (1 << gpio_key->idx);
-	key = (gpio_key->gpio << 8) | val;
-	printk("irq %d gpio %d val %d key %d\n\n", irq, gpio_key->gpio, val, key);
+	val = 1 << gpio_key->idx;
+	key = (now << 8) | (gpio_key->gpio << 4) | val;
+	
+	printk("irq %d gpio %d val %d jiffies: %u, key %d\n\n", irq, gpio_key->gpio, val, now, key);
 	put_key(key);
+	if (g_iLastKeyVal && g_iLastKeyVal != val) {
+		
+		printk("last key time: %u now: %u, diff: %u\n", g_ulLastKeyTime, now, now - g_ulLastKeyTime);	
+	}
 	
-	g_iLastKeyVal = val;
 	g_ulLastKeyTime = now;
+	g_iLastKeyVal = val;
 	
 	wake_up_interruptible(&gpio_key_wait);
 	// #define POLL_IN		(__SI_POLL|1)	/* data input available */

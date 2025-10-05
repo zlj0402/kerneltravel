@@ -1,16 +1,13 @@
 /**
- * @brief: 基于 <src,button_old>，实现了一次能处理多个按键值（在一页显示很慢的时候）
+ * @brief: 基于 <src2,button_old3>，在应用层实现了同时按下两个按键退出的功能，且不会实现第一个键的翻页，且流畅;
  * @author: liangj.zhang
- * @date: 4/10/2025
+ * @date: 5/10/2025
  *
- * @version-match: src2 <===> button_old2
- *
- * @ps:
- * 	+ 这一版本，直接省去了 异步信号接收处理按键值;
- * 		直接在子线程中，进行 poll & read 读取;
+ * @version-match: src3 <===> button_old4_src3
  *
  * @feature:
  * 		+ 如 @brief，
  * 		+ 已知问题，还剩下:
- * 			1. 同时按下两个键，第一个键会被按正常按键值处理;
- * */
+ * 			1. 同时按下两个键，有时候小于设定的20 jiffies，连续不同按键的时间小于设定的 20 jiffies，不能够转换，还是单独键处理，因为消费者快于生产者;
+ * 				+ chat 推荐使用 pthread_cond_t (pthread 条件变量);
+ */

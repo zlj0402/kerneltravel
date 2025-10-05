@@ -24,7 +24,7 @@
 #define COLOR_BACKGROUND   0xE7DBB5  /* 泛黄的纸 */
 #define COLOR_FOREGROUND   0x514438  /* 褐色字体 */
 
-#define DEBUG true
+#define DEBUG 1
 //#define DBG_PRINTF printf
 #define DBG_PRINTF
 #define DBG_PRINTF_MARK DBG_PRINTF("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__)

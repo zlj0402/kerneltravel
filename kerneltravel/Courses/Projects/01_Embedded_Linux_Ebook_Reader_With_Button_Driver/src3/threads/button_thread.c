@@ -14,6 +14,8 @@ static int g_iDevFd = -1;
 static pthread_t g_tKeyThread;
 static volatile bool g_bRun = true;
 
+// 驱动那边：jiffies（取模后的）[31,8] + gpio num [7, 4] + 按键值 [3, 0]
+// 这边直接将值放入数组
 static void *ButtonThread(void *arg) {
 
     struct pollfd t_pfd = { .fd = g_iDevFd, .events = POLLIN };
@@ -26,14 +28,7 @@ static void *ButtonThread(void *arg) {
             int iVal;
             ssize_t n = read(g_iDevFd, &iVal, sizeof(iVal));
             if (n == sizeof(iVal)) {
-				
-                iVal = iVal & 0xff;
-                char cKey = 0;
-                if (iVal == 1) cKey = 'u';
-                else if (iVal == 2) cKey = 'n';
-                else if (iVal) cKey = 'q';
-
-                if (cKey) EnqueueKey(cKey);
+                EnqueueKey(iVal);
             }
         }
     }

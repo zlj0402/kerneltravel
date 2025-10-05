@@ -1,7 +1,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-void EnqueueKey(char cKey);
+void EnqueueKey(int iKey);
 
 int DequeueKey(char *pcKey);
 
