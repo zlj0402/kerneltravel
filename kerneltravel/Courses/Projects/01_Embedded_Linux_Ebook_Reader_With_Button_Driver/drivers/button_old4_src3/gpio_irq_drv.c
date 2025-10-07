@@ -33,7 +33,7 @@ static struct gpio_key* gpio_keys;
 static int major;
 static struct class* gpio_key_class;
 
-static wait_queue_head_t gpio_key_wait;
+//static wait_queue_head_t gpio_key_wait;
 static DECLARE_WAIT_QUEUE_HEAD(gpio_key_wait);
 
 static unsigned int g_ulLastKeyTime;
