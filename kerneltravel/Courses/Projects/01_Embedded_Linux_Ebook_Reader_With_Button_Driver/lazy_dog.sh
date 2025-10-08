@@ -16,7 +16,7 @@ TARGET_DIR="/home/zlj/zljgit/kerneltravel/Courses/Projects/01_Embedded_Linux_Ebo
 # 需要拷贝至的目录
 COPY_DIR="/mnt/nfs_shared/Projects/01_Embedded_Linux_Ebook_Reader_With_Button_Driver/button_old"
 # 需要拷贝的目标
-OBJS=("./$SRC/show_file" "./lazy_dog_board.sh")
+OBJS=("./$SRC/show_file" "./lazy_dog_board.sh" "./lazy_dog_board2.sh")
 
 # 追加工具链编译出来的 .ko 文件
 for ko in $(awk -F= '/^obj-m[[:space:]]*[:+]?=/ {
