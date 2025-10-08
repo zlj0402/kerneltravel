@@ -1,6 +1,6 @@
 PROJECT_ROOT := $(PWD)
 SRC := src3
-BUTTON_DIR_NAME := button2
+BUTTON_DIR_NAME := button_old4_src3
 # 默认目标
 all: driver src
 

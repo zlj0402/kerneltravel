@@ -9,4 +9,8 @@ rmmod gpio_irq_drv.ko
 
 insmod gpio_irq_drv.ko
 
+rmmod button.ko
+
+insmod button.ko
+
 ./show_file -l -s 24 -f STKAITI.TTF -h HZK16 utf8_novel.txt
