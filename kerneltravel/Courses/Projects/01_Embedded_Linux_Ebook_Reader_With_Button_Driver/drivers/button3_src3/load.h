@@ -28,4 +28,9 @@
  * 	+ button3 -> 改名为 button3_src3
  *
  * 	+ button -> 没改名，一直都是错误分离的案例;
+ *
+ * @ps:
+ * 	+ 设备树的设置，参照当时学习中断那一系列课程的 git:
+ * 		+ link: https://github.com/zlj0402/kerneltravel/blob/main/kerneltravel/Courses/Embedded_Linux_application_development/05_linux_driver_development_basics/IRQ/01_gpio_irq_drv/load.h
+ * 		+ 只有 1.3 两个引脚的设备树节点中的 compatible 由原来的 "zlj,gpio_key" -> 改为 "button_driver,gpio_key" 
  */
