@@ -3,6 +3,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "load.h"
+
 int main(int argc, char **argv) {
 
 	int global = 0;
