@@ -1,0 +1,82 @@
+﻿/**
+ * @brief: Leetcode_165_比较版本号
+ * @link: https://leetcode.cn/problems/compare-version-numbers/description
+ * @author: liangj.zhang
+ * @date: 23/9/2025
+ * 
+ * @Difficulty: Medium
+ * 
+ * @Label: IO(String Split)
+ * 
+ * @Retrospect(worthy 1 - 5): 3
+ * 
+ * @thoughts:
+ *  + 【思路 1】：std::getline(stringstream, string, char)
+ *      做这题，是因为它是今天的每日一题；
+ *      再熟悉一下 IO 相关的方法使用；
+ *      
+ *      + 分析：
+ *          + 时间复杂度：
+ *              + 分割字符串：stringstream + getline 遍历字符串，每个字符会被读取一次。=> O(n1 + n2), n1 == len(version1), n2 == len(version2)
+ *              + 循环比较：最多循环 max(v1_st, v2_st) 次，设为 k； 
+ *                          每次循环调用一次 stoi；stoi 的复杂度与待转换字符串的长度成正比，设平均长度为 m；=> O(k * m); k * m 实际上就是字符串总长度;
+ *              + 总结：2 * O(n1 + n2) => O(n1 + n2)
+ *          + 空间复杂度：split 返回 vector<string>，里面存了拆分后的子串，整体额外空间是 O(n1 + n2)
+ *      + rank:
+ *          + 时间效率：0 ms, 击败 100%
+ *          + 空间效率：8.93 MB, 击败 5.18%
+ * 
+ *  + 【思路 2】：双指针 扫描
+ *      留着以后写吧
+ */
+
+#include <string>
+#include <iostream>
+using std::string;
+using std::cout;
+using std::endl;
+
+#include <vector>
+#include <sstream>
+using std::vector;
+using std::stringstream;
+using std::getline;
+
+// 【思路 1】：std::getline(stringstream, string, char)
+class Solution {
+
+private:
+    static vector<string> split(const string& str, char sep) {
+
+        vector<string> res;
+        stringstream ss(str);
+        string token;
+
+        while(getline(ss, token, sep)) 
+            res.push_back(token);
+
+        return res;
+    }
+
+public:
+    int compareVersion(string version1, string version2) {
+        
+        vector<string> v1_lst = split(version1, '.');
+        vector<string> v2_lst = split(version2, '.');
+
+        int v1_st(v1_lst.size()), v2_st(v2_lst.size());
+        int v1_val, v2_val;
+        for (int i = 0; i < v1_st || i < v2_st; ++i) {
+
+            v1_val = i < v1_st ? stoi(v1_lst[i]) : 0;
+            v2_val = i < v2_st ? stoi(v2_lst[i]) : 0;
+
+            if (v1_val > v2_val)
+                return 1;
+            else if (v1_val < v2_val)
+                return -1;
+        }
+
+        return 0;
+    }
+};
