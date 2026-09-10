@@ -8,7 +8,12 @@
 
 !.claude/projects/*/memory/
 !.claude/projects/*/MEMORY.md
-!.claude/settings.json.template
+!.claude/settings.local.json.template
 !.claude/README.md
 # Ignore large conversation history files
 .claude/**/*.jsonl 
+
+.vscode/*
+
+**/cmake/**/build/**
+**/cmake/**/output/**
