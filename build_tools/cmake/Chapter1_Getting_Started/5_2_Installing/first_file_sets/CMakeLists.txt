@@ -46,8 +46,10 @@ add_custom_target(printMainTool
     COMMAND ${CMAKE_COMMAND} -E echo "INTERFACE_INCLUDE_DIRECTORIES=$<TARGET_PROPERTY:mainTool,INTERFACE_INCLUDE_DIRECTORIES>"
 )
 
-install(TARGETS mainTool Utils)
-install(DIRECTORY src/include/ DESTINATION include)
+# install(TARGETS mainTool Utils)
+install(TARGETS mainTool Utils FILE_SET utils) # 还能接 FILE_SET, 接上跟单独 install(DIRECTORY) fileSet 对象包含的路径一样；
+# install(TARGETS mainTool Utils)
+# install(DIRECTORY src/include/ DESTINATION include)
 
 add_test(NAME mainToolTest COMMAND mainTool)
 
@@ -76,7 +78,8 @@ cmake --install build --prefix output
 
 #[=======================[
 @brief: 初步探究 target_sources 的使用（主要是 file sets）;
-		<PRIVATE/PUBLIC/INTERFACE> 属性的传播链认识；
+		&& <PRIVATE/PUBLIC/INTERFACE> 属性的传播链认识；
+		&& install(TARGETS <> FILE_SET <>) 效果
 @author: liangj.zhang
 @date: 2026/09/11
 
@@ -133,4 +136,38 @@ cmake --install build --prefix output
 		add_libraries() + target_link_libraries()
 		add_executable() + target_link_libraries()
 		见上面的总结
+
+@output:
+
+	1. install(TARGETS mainTool Utils FILE_SET utils)
+	MINGW64 /d/Codes/zljgit/kerneltravel/build_tools/cmake/Chapter1_Getting_Started/5_2_Installing/first_file_sets (main)
+	$ cd output && cmd //c "tree /f"
+	卷 软件 的文件夹 PATH 列表
+	卷序列号为 6B78-46D0
+	D:.
+	├─bin
+	│      mainTool.exe
+	│
+	├─include
+	│      utils.hpp
+	│
+	└─lib
+			libUtils.a
+
+	2. install(TARGETS mainTool Utils)
+	MINGW64 /d/Codes/zljgit/kerneltravel/build_tools/cmake/Chapter1_Getting_Started/5_2_Installing/first_file_sets (main)
+	$ cd output && cmd //c "tree /f"
+	卷 软件 的文件夹 PATH 列表
+	卷序列号为 6B78-46D0
+	D:.
+	├─bin
+	│      mainTool.exe
+	│      
+	└─lib
+			libUtils.a
+
+@summary:
+
+include(TARGETS <> FILE_SET <>) 
+target 后面接上 link 的 file set 对象，竟然可以做到等同单独 include(DIRECTORY) file sets对象(这里是 utils)涉及到的路径+文件
 ]=======================]

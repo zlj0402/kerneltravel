@@ -23,6 +23,20 @@ target_sources(Utils PUBLIC FILE_SET utils # 3.23+
 target_link_libraries(mainTool PRIVATE Utils)
 
 
+#[===============================[ subject1: try cpack]===============================]
+# These are project-specific
+set(CPACK_PACKAGE_NAME zljFirstPackaging)
+set(CPACK_PACKAGE_VENDOR MyCompany)
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An example packaging project")
+
+# These lines tend to be the same for every project
+set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+set(CPACK_VERBATIM_VARIABLES TRUE)
+
+include(CPack)
+#[===============================[ subject1: try cpack]===============================]
+
+
 install(TARGETS mainTool Utils)
 
 add_test(NAME mainToolTest COMMAND mainTool)
@@ -38,4 +52,8 @@ add_custom_target(clean_all
 cmake --preset debug
 cmake --build --preset debug-build
 cmake --install build --prefix output
+
+# packaging
+cd build
+cpack-G ZIP
 ]]
