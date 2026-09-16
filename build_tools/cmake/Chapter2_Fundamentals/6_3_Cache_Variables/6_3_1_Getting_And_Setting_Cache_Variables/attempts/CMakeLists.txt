@@ -1,0 +1,7 @@
+add_subdirectory(set_cache_without_force)
+
+add_subdirectory(set_cache_with_internal)
+
+add_subdirectory(get_cache_variables)
+
+add_subdirectory(set_cache_variable_after_non_cache)
