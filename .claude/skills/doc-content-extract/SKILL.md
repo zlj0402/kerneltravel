@@ -81,7 +81,113 @@ print(f'Extracted to {output_path}')
 优点：跨平台可靠，不依赖外部工具；编码处理灵活
 缺点：需要 Python 和 PyPDF2 库
 
-### 查找章节位置
+## 纯图片 PDF 提取方法（OCR）
+
+当 PDF 是纯图片（无文字层）时，`pdftotext` 和 `PyPDF2` 提取出的文字为空，需要用 OCR 识别。
+
+### 判断是否为纯图片 PDF
+
+```bash
+# 用 pdftotext 提取第 1 页，如果输出为空则可能是纯图片 PDF
+pdftotext -f 1 -l 1 "document.pdf" -
+```
+
+### 所需工具
+
+| 工具 | 用途 | 安装 |
+|------|------|------|
+| **PyMuPDF** (pymupdf) | 将 PDF 页面转为图片 | `pip install PyMuPDF` |
+| **Tesseract OCR** | 图片文字识别 | Windows: 从 [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki) 下载安装；Linux: `sudo apt install tesseract-ocr` |
+
+### 提取步骤
+
+#### 步骤 1：PDF 页面转图片 + OCR
+
+```python
+import pymupdf
+import subprocess
+import os
+
+pdf_path = r'path/to/document.pdf'
+output_dir = r'.claude/tmp/ocr_pages'
+tesseract = r'D:\Tools\Tesseract-OCR\tesseract.exe'  # 按实际路径修改
+# Linux: tesseract = 'tesseract'
+
+os.makedirs(output_dir, exist_ok=True)
+
+doc = pymupdf.open(pdf_path)
+total_pages = len(doc)
+
+for page_num in range(total_pages):
+    page = doc[page_num]
+    # 将页面渲染为图片（DPI 200 适合 OCR）
+    pix = page.get_pixmap(dpi=200)
+    img_path = os.path.join(output_dir, f'page_{page_num+1:03d}.png')
+    pix.save(img_path)
+
+    # Tesseract OCR 识别
+    txt_base = os.path.join(output_dir, f'page_{page_num+1:03d}')
+    subprocess.run([tesseract, img_path, txt_base, '-l', 'eng'],
+                   capture_output=True)
+
+    if (page_num + 1) % 10 == 0:
+        print(f'Page {page_num+1}/{total_pages} done')
+
+doc.close()
+print(f'All {total_pages} pages processed!')
+```
+
+#### 步骤 2：合并所有页面文本
+
+```python
+import os
+
+output_dir = r'.claude/tmp/ocr_pages'
+output_file = r'.claude/tmp/full_text.txt'
+
+with open(output_file, 'w', encoding='utf-8') as out:
+    for i in range(1, total_pages + 1):
+        txt_file = os.path.join(output_dir, f'page_{i:03d}.txt')
+        if os.path.exists(txt_file):
+            with open(txt_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                out.write(f'\n===== Page {i} =====\n\n')
+                out.write(content)
+                out.write('\n')
+
+print(f'Written to {output_file}')
+```
+
+### Tesseract 语言包
+
+```bash
+# 查看已安装的语言
+tesseract --list-langs
+
+# Windows: 安装时勾选需要的语言包
+# Linux: 安装额外语言包
+sudo apt install tesseract-ocr-chi-sim   # 简体中文
+sudo apt install tesseract-ocr-chi-tra   # 繁体中文
+```
+
+使用指定语言进行 OCR：
+
+```python
+# 英文
+subprocess.run([tesseract, img_path, txt_base, '-l', 'eng'])
+
+# 中英混合
+subprocess.run([tesseract, img_path, txt_base, '-l', 'eng+chi_sim'])
+```
+
+### 注意事项
+
+- DPI 建议设为 200，太低识别率低，太高处理慢且文件大；
+- 每页生成一个 `.png` 和一个 `.txt`，合并时按页码顺序拼接；
+- OCR 对表格、公式、图表的识别效果有限，可能需要人工校对；
+- 大文件（>100 页）处理时间较长，建议先试几页确认效果后再批量处理。
+
+## 查找章节位置
 
 PDF 页码通常与印刷页码不一致，需要先定位章节：
 
