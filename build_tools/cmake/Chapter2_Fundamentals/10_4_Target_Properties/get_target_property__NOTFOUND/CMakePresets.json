@@ -1,0 +1,19 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "debug",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug-build",
+            "configurePreset": "debug"
+        }
+    ]
+}
