@@ -9,6 +9,7 @@
 #   -i, --install        Install after building (to ./output)
 #   -c, --clean          Clean before building
 #   -j, --jobs N         Number of parallel jobs (default: auto)
+#   -v, --verbose        Enable verbose build output (show compiler/archiver commands)
 #   -h, --help           Show this help message
 
 set -e
@@ -25,6 +26,7 @@ BUILD_TYPE="Debug"
 DO_INSTALL=false
 CLEAN_FIRST=false
 JOBS=""
+VERBOSE=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -49,6 +51,10 @@ while [[ $# -gt 0 ]]; do
             JOBS="--parallel $2"
             shift 2
             ;;
+        -v|--verbose)
+            VERBOSE="--verbose"
+            shift
+            ;;
         -h|--help)
             cat << 'EOF'
 Build script for CMake projects (supports both single and multi-config generators)
@@ -63,6 +69,7 @@ Options:
   -i, --install        Install after building (to ./output)
   -c, --clean          Clean before building
   -j, --jobs N         Number of parallel jobs (default: auto)
+  -v, --verbose        Enable verbose build output (show compiler/archiver commands)
   -h, --help           Show this help message
 
 Examples:
@@ -85,6 +92,10 @@ Examples:
 
   # Build with parallel jobs
   ./build.sh -j 8 -t Debug
+
+  # Verbose build output
+  ./build.sh -v
+  ./build.sh --verbose -t Release
 EOF
             exit 0
             ;;
@@ -131,9 +142,9 @@ echo ""
 # Build
 echo "=== Building ==="
 if is_multi_config; then
-    cmake --build "$BUILD_DIR" --config "$BUILD_TYPE" $JOBS
+    cmake --build "$BUILD_DIR" --config "$BUILD_TYPE" $JOBS $VERBOSE
 else
-    cmake --build "$BUILD_DIR" $JOBS
+    cmake --build "$BUILD_DIR" $JOBS $VERBOSE
 fi
 echo ""
 
