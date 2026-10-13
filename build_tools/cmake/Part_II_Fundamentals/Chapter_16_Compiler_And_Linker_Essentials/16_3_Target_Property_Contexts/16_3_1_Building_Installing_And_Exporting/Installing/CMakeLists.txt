@@ -56,48 +56,64 @@ target_include_directories(AlgoImpl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/incl
 # 相对目录，${CMAKE_CURRENT_SOURCE_DIR}/ =》 会被自动加上
 # target_include_directories(AlgoImpl PRIVATE src/include)
 target_include_directories(Compute PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/include)
-target_include_directories(Algo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 # 注意：MyApp 不应该直接添加 include 目录
 # - Compute.h 能找到：因为 Compute 是 Algo 的 PUBLIC 依赖，include 目录会传递
 # - AlgoImpl.h 找不到：因为 AlgoImpl 是 Algo 的 PRIVATE 依赖，include 目录不会传递
 
-
+#[==================[action: install(EXPORT ...) 导出库时，需要将 PUBLIC 的依赖也要导出，这里直接改为 PRIVATE,省掉导出]==================]
 # Algo 的依赖关系
 target_link_libraries(Algo
-    PUBLIC
-        Compute      # PUBLIC: Algo 自己用，消费者（MyApp）也能用
     PRIVATE
-        AlgoImpl     # PRIVATE: 只有 Algo 自己用，消费者看不到
+        AlgoImpl
+        Compute
+)
+#[==================[action: install(EXPORT ...) 导出库时，需要将 PUBLIC 的依赖也要导出，这里直接改为 PRIVATE,省掉导出]==================]
+
+#[==================[subject1: 给 Algo 库的 INCLUDE_DIRECTORIES 赋值生成表达式，使该属性在构建，安装上下文，具备不同的值]==================]
+# 1. 设置包含路径（编译时用）
+target_include_directories(Algo PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/BUILD_ONLY>
+    $<INSTALL_INTERFACE:include/INSTALL_ONLY>
 )
 
-# 关联 Algo 的 public 头文件
+# 2. 管理头文件集合（安装时用）
 target_sources(Algo PUBLIC FILE_SET algo_pub
     TYPE HEADERS
-    BASE_DIRS src/include
-    FILES
-        src/include/Algo.h
+    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src/include
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/include/Algo.h
 )
 
-# 关联 Algo 的 private 头文件
-# 注释掉，因为不会被安装，也不会传递给消费者；
-# target_sources(Algo PRIVATE FILE_SET algo_pri
-#     TYPE HEADERS
-#     BASE_DIRS src/include
-#     FILES
-#         src/include/Compute.h
-#         src/include/AlgoImpl.h
-# )
+# 导出 target，生成 CMake 配置文件
+install(TARGETS Algo
+    EXPORT AlgoTargets
+    FILE_SET algo_pub DESTINATION include
+)
 
+# 导出配置文件
+install(EXPORT AlgoTargets
+    DESTINATION lib/cmake/Algo
+)
+
+# 构建时：显示 BUILD_INTERFACE 的值
+add_custom_command(TARGET Algo POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "=== BUILD PHASE ==="
+    COMMAND ${CMAKE_COMMAND} -E echo "INCLUDE = $<TARGET_PROPERTY:Algo,INTERFACE_INCLUDE_DIRECTORIES>"
+)
+#[==================[subject1: 给 Algo 库的 INCLUDE_DIRECTORIES 赋值生成表达式，使该属性在构建，安装上下文，具备不同的值]==================]
+
+#[========[action: Algo 库自己 private 方式包含 Compute，无法传递给 MyApp， 这里就让 MyApp 自己包含]========]
 # MyApp 的依赖关系
 target_link_libraries(MyApp
     PRIVATE
         Algo
+        Compute
 )
+#[========[action: Algo 库自己 private 方式包含 Compute，无法传递给 MyApp， 这里就让 MyApp 自己包含]========]
 
 #[==========[]==========]
 add_subdirectory(attempts)
 
-install(TARGETS Algo FILE_SET algo_pub)
+# install(TARGETS Algo FILE_SET algo_pub)
 install(TARGETS MyApp RUNTIME DESTINATION bin)
 
 add_test(NAME myAppTest COMMAND MyApp)
@@ -109,15 +125,18 @@ add_custom_target(clean_all
 	COMMENT "Cleaning output directory..."
 )
 
-# 在构建时打印 MyApp 解析后的 INCLUDE_DIRECTORIES
-add_custom_command(TARGET MyApp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "MyApp INCLUDE_DIRECTORIES = $<TARGET_PROPERTY:MyApp,INCLUDE_DIRECTORIES>"
-    COMMAND ${CMAKE_COMMAND} -E echo "MyApp INTERFACE_INCLUDE_DIRECTORIES = $<TARGET_PROPERTY:MyApp,INTERFACE_LINK_LIBRARIES>"
-)
+#[=========================[note: install(CODE ...) 的方式，无法正确输出 生成表达式的结果]=========================]
+# 安装时：显示 INSTALL_INTERFACE 的值
+# install(CODE "
+#     message(STATUS \"=== INSTALL PHASE ===\")
+#     message(STATUS \"INTERFACE_INCLUDE = $<TARGET_PROPERTY:Algo,INTERFACE_INCLUDE_DIRECTORIES>\")
+# ")
+#[=========================[note: install(CODE ...) 的方式，无法正确输出 生成表达式的结果]=========================]
+
 
 #[[
 @brief: 使用 $<BUILD_INTERFACE:...> $<INSTALL_INTERFACE:...> 来只在对应阶段赋予相应的属性值； &&
-        并在对应阶段，输出对应属性的值，比如 INCLUDE_DIRECTORIES
+        并在对应阶段，输出对应属性的值，比如 INTERFACE_INCLUDE_DIRECTORIES
 @author: liangj.zhang
 @date: 2026/10/10
 
@@ -132,4 +151,56 @@ add_custom_command(TARGET MyApp POST_BUILD
         比如这里的 Algo lib，如果 lib 有内容使用的接口，这些接口的头文件可以不用 install，只 install 需要提供接口所在头文件；
         --
         库提供出来，必须至少会有一个头文件一起安装；
+
++ output: -- subject1
++ output in Output Window：
+
+    === BUILD PHASE ===
+    INCLUDE = D:/Codes/zljgit/kerneltravel/build_tools/cmake/Part_II_Fundamentals/Chapter_16_Compiler_And_Linker_Essentials/16_3_Target_Property_Contexts/Installing/src/BUILD_ONLY;D:/Codes/zljgit/kerneltravel/build_tools/cmake/Part_II_Fundamentals/Chapter_16_Compiler_And_Linker_Essentials/16_3_Target_Property_Contexts/Installing/src/include
+
++ /output/lib/cmake/Algo/AlgoTargets.cmake 的片段：
+
+    if(NOT CMAKE_VERSION VERSION_LESS "3.23.0")
+    target_sources(Algo
+        INTERFACE
+        FILE_SET "algo_pub"
+        TYPE "HEADERS"
+        BASE_DIRS "${_IMPORT_PREFIX}/include"
+        FILES "${_IMPORT_PREFIX}/include/Algo.h"
+    )
+
+    else()
+    set_property(TARGET Algo
+        APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+        "${_IMPORT_PREFIX}/include"
+    )
+    endif()
+
+else() 分支中，对于我们设置的两个生成表达式，这里只用到了 INSTALL_INTERFACE 中的值，
+BUILD_INTERFACE 的值没有被用到，说明 生成表达式 $<BUILD_INTERFACE> $<INSTALL_INTERFACE> 上下文确实起到作用了；
+
++ 不能用 install(CODE ...) 的方式，来输出安装阶段 Algo 的 INTERFACE_INCLUDE_DIRECTORIES，它不会对生成表达式正确求值，
+    从现象上看，没有进行判断，将每个生成表达式的值都留下来了；
+
++ phenomenon:
+    add_custom_command(TARGET Algo POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "=== BUILD PHASE ==="
+        COMMAND ${CMAKE_COMMAND} -E echo "INCLUDE = $<TARGET_PROPERTY:Algo,INTERFACE_INCLUDE_DIRECTORIES>"
+    )
+    如果 build 阶段，输出的是 INCLUDE_DIRECTORIES，output 窗口的输出，你会看到
+    有重复的 xxx/src/include，因为有不同的地方，对这个属性值有影响：
+        1. 下面这里就传递了一个（原来以为添加了两个，看输出总共只有两个，那这里应该就只算了一个，进行了去重可能）
+            target_link_libraries(Algo
+                PRIVATE
+                    AlgoImpl
+                    Compute
+            )
+        2. 下面这里传递一个
+            target_sources(Algo PUBLIC FILE_SET algo_pub
+                TYPE HEADERS
+                BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src/include
+                FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/include/Algo.h
+            )
+        === BUILD PHASE ===
+        INCLUDE = D:/Codes/zljgit/kerneltravel/build_tools/cmake/Part_II_Fundamentals/Chapter_16_Compiler_And_Linker_Essentials/16_3_Target_Property_Contexts/Installing/src/BUILD_ONLY;D:/Codes/zljgit/kerneltravel/build_tools/cmake/Part_II_Fundamentals/Chapter_16_Compiler_And_Linker_Essentials/16_3_Target_Property_Contexts/Installing/src/include;D:/Codes/zljgit/kerneltravel/build_tools/cmake/Part_II_Fundamentals/Chapter_16_Compiler_And_Linker_Essentials/16_3_Target_Property_Contexts/Installing/src/include
 ]]
