@@ -6,7 +6,7 @@
 # 取消忽略具体内容
 !.claude/skills/**
 
-!.claude/projects/*/memory/
+!.claude/**/memory/
 !.claude/projects/*/MEMORY.md
 !.claude/settings.local.json.template
 !.claude/README.md
